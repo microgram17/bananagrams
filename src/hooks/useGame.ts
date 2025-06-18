@@ -1,11 +1,118 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useReducer, useState, useEffect, useCallback } from 'react';
 import { GameState, Tile, Board, Position, BoardTile } from '../types';
 import { getInitialTiles, shuffle, peel, dump } from '../lib/gameLogic';
 import { loadWordList } from '../lib/wordlist';
 
 const BOARD_SIZE = 20;
 
-export const useGame = (playerCount: number) => {
+// 1. DEFINE YOUR TYPES
+export interface Tile {
+  id: string;
+  letter: string;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+// A tile on the board can be null (empty)
+export type BoardTile = Tile | null;
+
+// The complete state of the game
+export interface GameState {
+  board: BoardTile[][];
+  playerHand: Tile[];
+  // Add other state as needed, e.g., tileBag, score, etc.
+}
+
+// An item being dragged can be from the hand or the board
+export type DraggedItem =
+  | { type: 'hand'; tile: Tile }
+  | { type: 'board'; tile: Tile; position: Position };
+
+// 2. DEFINE ACTIONS
+// Actions are objects that describe a state change.
+type GameAction = {
+  type: 'MOVE_TILE';
+  payload: {
+    draggedItem: DraggedItem;
+    dropTarget: Position | 'hand';
+  };
+};
+// Add other actions like { type: 'DRAW_TILE' } or { type: 'INITIALIZE_GAME' }
+
+// 3. CREATE THE REDUCER
+// A pure function that calculates the next state. It's the "brain" of your game logic.
+const gameReducer = (state: GameState, action: GameAction): GameState => {
+  switch (action.type) {
+    case 'MOVE_TILE': {
+      const { draggedItem, dropTarget } = action.payload;
+      const { tile } = draggedItem;
+
+      // Create mutable copies for this transaction
+      const newBoard = state.board.map(r => [...r]);
+      let newHand = [...state.playerHand];
+
+      // --- Logic to remove the tile from its origin ---
+      if (draggedItem.type === 'hand') {
+        // Remove from hand
+        newHand = newHand.filter(t => t.id !== tile.id);
+      } else {
+        // Remove from board
+        const { x, y } = draggedItem.position;
+        newBoard[y][x] = null;
+      }
+
+      // --- Logic to place the tile in its destination ---
+      if (dropTarget === 'hand') {
+        // Add to hand if not already there
+        if (!newHand.some(t => t.id === tile.id)) {
+          newHand.push(tile);
+        }
+      } else {
+        // Destination is the board
+        const { x, y } = dropTarget;
+
+        // If the destination cell is already occupied, move that tile to the hand
+        const replacedTile = newBoard[y][x];
+        if (replacedTile) {
+          newHand.push(replacedTile);
+        }
+
+        // Place the new tile on the board
+        newBoard[y][x] = tile;
+      }
+
+      // Return the new, immutable state object
+      return {
+        ...state,
+        board: newBoard,
+        playerHand: newHand,
+      };
+    }
+
+    // Add other cases for other actions here...
+
+    default:
+      return state;
+  }
+};
+
+// Initial state for the game
+const initialGameState: GameState = {
+  board: Array(15).fill(null).map(() => Array(15).fill(null)),
+  playerHand: [
+    // Example initial hand
+    { id: 't1', letter: 'A' },
+    { id: 't2', letter: 'B' },
+    { id: 't3', letter: 'C' },
+  ],
+};
+
+// 4. CREATE THE HOOK
+export const useGame = () => {
+  const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [bunch, setBunch] = useState<Tile[]>([]);
   const [playerHand, setPlayerHand] = useState<Tile[]>([]);
   const [board, setBoard] = useState<Board>(
@@ -83,9 +190,15 @@ export const useGame = (playerCount: number) => {
   const moveTile = useCallback(
     (draggedItem: Tile | BoardTile, dropTarget: Position | 'hand') => {
       // Use functional updates to prevent stale state issues.
+      let replacedTile: Tile | null = null;
 
       setBoard(currentBoard => {
         const newBoard = currentBoard.map(r => [...r]);
+
+        // If dropping on the board, check for and store the existing tile.
+        if (dropTarget !== 'hand') {
+          replacedTile = newBoard[dropTarget.y][dropTarget.x];
+        }
 
         // Remove tile from board if its origin was the board
         if ('x' in draggedItem) {
@@ -115,11 +228,25 @@ export const useGame = (playerCount: number) => {
           }
         }
 
+        // If a tile was replaced on the board, add it back to the hand,
+        // but only if it's not the same tile being moved.
+        if (replacedTile && replacedTile.id !== draggedItem.id) {
+          newHand.push({ id: replacedTile.id, letter: replacedTile.letter });
+        }
+
         return newHand;
       });
     },
     [] // Dependencies are no longer needed with functional updates
   );
+
+  // Expose state and a simplified way to call actions
+  const moveTileAction = (draggedItem: DraggedItem, dropTarget: Position | 'hand') => {
+    dispatch({
+      type: 'MOVE_TILE',
+      payload: { draggedItem, dropTarget },
+    });
+  };
 
   return {
     bunch,
@@ -131,6 +258,6 @@ export const useGame = (playerCount: number) => {
     skala,
     dumpa,
     checkWord,
-    moveTile,
+    moveTile: moveTileAction,
   };
 };
