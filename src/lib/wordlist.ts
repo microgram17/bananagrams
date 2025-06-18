@@ -17,11 +17,13 @@ export const loadWordList = async (): Promise<Set<string>> => {
   }
 };
 
-export const isValidWord = (word: string): boolean => {
+// Example for word validation logic
+export function isValidWord(word: string, wordSet: Set<string>): boolean {
+  // Convert the board word to lowercase before checking against the word set
   if (!wordSet) {
     console.error("Word list not loaded yet.");
     return false;
   }
 
   return wordSet.has(word.toLowerCase());
-};
+}
