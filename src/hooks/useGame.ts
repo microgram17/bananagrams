@@ -82,30 +82,43 @@ export const useGame = (playerCount: number) => {
 
   const moveTile = useCallback(
     (draggedItem: Tile | BoardTile, dropTarget: Position | 'hand') => {
-      const newBoard = board.map(r => [...r]);
-      let newHand = [...playerHand];
+      // Use functional updates to prevent stale state issues.
 
-      // Remove tile from its origin
-      if ('x' in draggedItem) { // from board
-        newBoard[draggedItem.y][draggedItem.x] = null;
-      } else { // from hand
-        newHand = newHand.filter(t => t.id !== draggedItem.id);
-      }
+      setBoard(currentBoard => {
+        const newBoard = currentBoard.map(r => [...r]);
 
-      // Place tile in its destination
-      if (dropTarget !== 'hand') { // to board
-        newBoard[dropTarget.y][dropTarget.x] = { id: draggedItem.id, letter: draggedItem.letter };
-      } else { // to hand
-        // ensure not to duplicate
-        if (!newHand.find(t => t.id === draggedItem.id)) {
-          newHand.push({ id: draggedItem.id, letter: draggedItem.letter });
+        // Remove tile from board if its origin was the board
+        if ('x' in draggedItem) {
+          newBoard[draggedItem.y][draggedItem.x] = null;
         }
-      }
-      
-      setBoard(newBoard);
-      setPlayerHand(newHand);
+
+        // Place tile on board if its destination is the board
+        if (dropTarget !== 'hand') {
+          newBoard[dropTarget.y][dropTarget.x] = { id: draggedItem.id, letter: draggedItem.letter };
+        }
+
+        return newBoard;
+      });
+
+      setPlayerHand(currentHand => {
+        // Remove tile from hand if its origin was the hand
+        let newHand =
+          'x' in draggedItem
+            ? [...currentHand] // Not from hand, so just copy the array
+            : currentHand.filter(t => t.id !== draggedItem.id); // From hand, so filter it out
+
+        // Add tile to hand if its destination is the hand
+        if (dropTarget === 'hand') {
+          // Ensure we don't add a duplicate if it's already there
+          if (!newHand.some(t => t.id === draggedItem.id)) {
+            newHand.push({ id: draggedItem.id, letter: draggedItem.letter });
+          }
+        }
+
+        return newHand;
+      });
     },
-    [board, playerHand]
+    [] // Dependencies are no longer needed with functional updates
   );
 
   return {
