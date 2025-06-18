@@ -4,7 +4,7 @@
   "description": "A single-player practice version of the board game Bananagrams, following S.A.O.L word rules.",
   "main": "src/index.tsx",
   "scripts": {
-    "start": "npm install && react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
