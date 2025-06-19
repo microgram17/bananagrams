@@ -1,11 +1,11 @@
 import React from 'react';
-import { Board as BoardType, BoardTile, Tile as TileType } from '../../types';
 import Cell from '../Cell';
+import { Board as BoardType, Tile, DraggedItem } from '../../types';
 import './Board.css';
 
 interface BoardProps {
   board: BoardType;
-  onDropTile: (tile: TileType | BoardTile, x: number, y: number) => void;
+  onDropTile: (item: DraggedItem, x: number, y: number) => void;
 }
 
 const Board: React.FC<BoardProps> = ({ board, onDropTile }) => {
@@ -14,8 +14,7 @@ const Board: React.FC<BoardProps> = ({ board, onDropTile }) => {
       {board.map((row, y) => (
         <div key={y} className="board-row">
           {row.map((tile, x) => {
-            const boardTile: BoardTile | null = tile ? { ...tile, x, y } : null;
-            return <Cell key={`${x}-${y}`} x={x} y={y} tile={boardTile} onDropTile={onDropTile} />;
+            return <Cell key={`${x}-${y}`} x={x} y={y} tile={tile} onDropTile={onDropTile} />;
           })}
         </div>
       ))}

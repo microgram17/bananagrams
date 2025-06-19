@@ -1,37 +1,35 @@
 import React from 'react';
-import { useDrop, DropTargetMonitor } from 'react-dnd';
-import { Tile as TileType, BoardTile } from '../../types';
-import Tile from '../Tile';
-import { ItemTypes } from '../Tile';
+import { useDrop } from 'react-dnd';
+import TileUI from '../Tile'; // Using the consolidated Tile component
+import { Tile, DraggedItem } from '../../types';
 import './PlayerHand.css';
 
 interface PlayerHandProps {
-  tiles: TileType[];
-  onDropTile: (tile: BoardTile) => void;
-  onTileClick: (tile: TileType) => void;
+  tiles: Tile[];
+  onDropTile: (item: DraggedItem) => void;
+  onTileClick: (tile: Tile) => void;
 }
 
 const PlayerHand: React.FC<PlayerHandProps> = ({ tiles, onDropTile, onTileClick }) => {
   const [{ isOver }, drop] = useDrop(() => ({
-    accept: ItemTypes.TILE,
-    drop: (item: BoardTile) => {
-      // Only allow drops from the board, not from the hand to the hand.
-      if ('x' in item) {
-        onDropTile(item);
-      }
-    },
-    collect: (monitor: DropTargetMonitor) => ({
+    accept: 'tile',
+    drop: (item: DraggedItem) => onDropTile(item),
+    collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   }));
 
   return (
-    <div ref={drop} className={`player-hand ${isOver ? 'over' : ''}`}>
+    <div ref={drop} className={`player-hand ${isOver ? 'is-over' : ''}`}>
+      <h2>Your Tiles</h2>
       <div className="tiles-container">
-        {tiles.map(tile => (
-          <div key={tile.id} onClick={() => onTileClick(tile)} title="Click to dump">
-            <Tile tile={tile} />
-          </div>
+        {tiles.map((tile) => (
+          <TileUI
+            key={tile.id}
+            tile={tile}
+            onClick={onTileClick}
+            origin={{ type: 'hand' }}
+          />
         ))}
       </div>
     </div>

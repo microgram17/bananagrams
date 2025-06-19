@@ -1,40 +1,30 @@
 import React from 'react';
-import { useDrop, DropTargetMonitor } from 'react-dnd';
-import { Tile as TileType, BoardTile } from '../../types';
-import Tile from '../Tile';
-import { ItemTypes } from '../Tile';
+import { useDrop } from 'react-dnd';
+import TileUI from '../Tile'; // Using the consolidated Tile component
+import { Tile, DraggedItem } from '../../types';
 import './Cell.css';
 
 interface CellProps {
   x: number;
   y: number;
-  tile: BoardTile | null;
-  onDropTile: (tile: TileType | BoardTile, x: number, y: number) => void;
+  tile: Tile | null;
+  onDropTile: (item: DraggedItem, x: number, y: number) => void;
 }
 
 const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile }) => {
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
-    accept: ItemTypes.TILE,
-    drop: (item: TileType | BoardTile) => onDropTile(item, x, y),
-    canDrop: () => !tile,
-    collect: (monitor: DropTargetMonitor) => ({
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: 'tile',
+    drop: (item: DraggedItem) => onDropTile(item, x, y),
+    collect: (monitor) => ({
       isOver: !!monitor.isOver(),
-      canDrop: !!monitor.canDrop(),
     }),
   }));
 
-  let backgroundColor = 'transparent';
-  if (isOver && canDrop) {
-    backgroundColor = 'lightgreen';
-  } else if (isOver && !canDrop) {
-    backgroundColor = 'lightcoral';
-  }
-
   return (
-    <div ref={drop} className="cell" style={{ backgroundColor }}>
-      {tile && <Tile tile={tile} />}
+    <div ref={drop} className={`cell ${isOver ? 'is-over' : ''}`}>
+      {tile && <TileUI tile={tile} origin={{ type: 'board', position: { x, y } }} />}
     </div>
   );
 };
 
-export default React.memo(Cell);
+export default Cell;
