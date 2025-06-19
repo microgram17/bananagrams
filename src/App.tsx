@@ -4,7 +4,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { useGame } from "./hooks/useGame";
 import Board from "./components/Board";
 import PlayerHand from "./components/PlayerHand";
-import { Tile, BoardTile } from "./types";
+import { Tile, DraggedItem } from "./types";
 import "./App.css";
 
 function App() {
@@ -17,26 +17,30 @@ function App() {
     skala,
     dumpa,
     moveTile,
-  } = useGame(1); // Single player
+  } = useGame();
 
-  const moveTileToBoard = (tile: Tile | BoardTile, x: number, y: number) => {
-    moveTile(tile, { x, y });
+  // NOTE: The onDropTile prop for your Board component needs to be updated
+  // to pass the full DraggedItem from react-dnd, not just the tile.
+  const moveTileToBoard = (item: DraggedItem, x: number, y: number) => {
+    moveTile(item, { x, y });
   };
 
-  const moveTileToHand = (tile: BoardTile) => {
-    moveTile(tile, "hand");
+  // NOTE: The onDropTile prop for your PlayerHand component also needs to be updated.
+  const moveTileToHand = (item: DraggedItem) => {
+    moveTile(item, "hand");
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="App">
         <h1>Bananagrams</h1>
-        <div className="controls">
+        <div className="game-controls">
           {gameState === "pre-game" ? (
-            <button onClick={startGame}>Start Game</button>
+            <button onClick={() => startGame(1)}>Start Game</button>
           ) : (
             <>
               <button onClick={skala}>Skala</button>
+              {/* You can add a button to check words or other controls here */}
             </>
           )}
         </div>
