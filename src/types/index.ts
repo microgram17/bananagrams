@@ -1,10 +1,10 @@
-export type Letter =
-  | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J'
-  | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'R' | 'S' | 'T' | 'U'
-  | 'V' | 'X' | 'Y' | 'Ä' | 'Ö' | 'Å';
+// All shared types for the Bananagrams game
+
+// prettier-ignore
+export type Letter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'R' | 'S' | 'T' | 'U' | 'V' | 'X' | 'Y' | 'Ä' | 'Ö' | 'Å';
 
 export interface Tile {
-  id: string;
+  id: string; // Unique identifier for drag-and-drop
   letter: Letter;
 }
 
@@ -13,26 +13,18 @@ export interface Position {
   y: number;
 }
 
+// A tile placed on the game board
 export interface BoardTile extends Tile {
   position: Position;
 }
 
+// The game board is a 2D grid that can hold a tile or be empty
 export type Board = (Tile | null)[][];
 
-export type GameStatus = 'pre-game' | 'in-progress' | 'finished';
+export type GameStatus = 'pre-game' | 'in-progress' | 'won';
 
-// An item being dragged can be from the hand or the board
-export type DraggedItem =
-  | { type: 'hand'; id: string; letter: Letter }
-  | { type: 'board'; id: string; letter: Letter; position: Position };
-
-
-// The complete state of the game, managed by the reducer
-export interface GameState {
-  status: GameStatus;
-  bunch: Tile[];
-  playerHand: Tile[];
-  board: Board;
-  wordList: Set<string>;
-  message: string;
+// Item type for React DnD
+export interface DraggedItem {
+  tile: Tile;
+  source: 'hand' | Position; // Where the tile came from
 }

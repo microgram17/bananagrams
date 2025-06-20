@@ -1,8 +1,7 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
-import TileUI from '../Tile'; // Using the consolidated Tile component
+import { Tile as TileComponent } from '../Tile';
 import { Tile, DraggedItem } from '../../types';
-import './Cell.css';
 
 interface CellProps {
   x: number;
@@ -11,20 +10,27 @@ interface CellProps {
   onDropTile: (item: DraggedItem, x: number, y: number) => void;
 }
 
-const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
+export const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile }) => {
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'tile',
     drop: (item: DraggedItem) => onDropTile(item, x, y),
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop(),
     }),
   }));
 
+  const getBackgroundColor = () => {
+    if (isOver && canDrop) return 'bg-green-200';
+    return 'bg-yellow-100/50';
+  };
+
   return (
-    <div ref={drop} className={`cell ${isOver ? 'is-over' : ''}`}>
-      {tile && <TileUI tile={tile} origin={{ type: 'board', position: { x, y } }} />}
+    <div
+      ref={drop}
+      className={`w-11 h-11 border border-dashed border-gray-300 flex items-center justify-center transition-colors ${getBackgroundColor()}`}
+    >
+      {tile && <TileComponent tile={tile} source={{ x, y }} />}
     </div>
   );
 };
-
-export default Cell;

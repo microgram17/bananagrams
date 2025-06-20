@@ -9,6 +9,7 @@ COPY package*.json ./
 
 # Install project dependencies
 RUN npm install
+RUN npm list react-dnd react-dnd-html5-backend || echo "Dependencies not found"
 
 # Copy the rest of the application code into the container
 COPY . .

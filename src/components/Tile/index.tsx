@@ -1,39 +1,35 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
 import { Tile as TileType, Position } from '../../types';
-import './Tile.css';
 
 interface TileProps {
   tile: TileType;
-  // The origin helps construct the correct DraggedItem
-  origin: { type: 'hand' } | { type: 'board'; position: Position };
-  // Optional click handler for actions like "dump"
+  source: 'hand' | Position; // Where the tile is coming from
   onClick?: (tile: TileType) => void;
 }
 
-const Tile: React.FC<TileProps> = ({ tile, origin, onClick }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'tile',
-    // The item is the payload that gets passed on drop
-    item: { ...tile, ...origin },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+export const Tile: React.FC<TileProps> = ({ tile, source, onClick }) => {
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: 'tile',
+      item: { tile, source }, // The item is the payload that gets passed on drop
+      collect: (monitor) => ({
+        isDragging: !!monitor.isDragging(),
+      }),
     }),
-  }));
+    [tile, source] // Add this dependency array
+  );
+
+  const cursorStyle = onClick ? 'pointer' : 'grab';
 
   return (
     <div
       ref={drag}
-      className="tile"
       onClick={onClick ? () => onClick(tile) : undefined}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-        cursor: onClick ? 'pointer' : 'grab',
-      }}
+      className={`w-10 h-10 bg-yellow-300 border-2 border-yellow-400 rounded-md flex items-center justify-center font-bold text-xl text-gray-800 select-none shadow-md hover:bg-yellow-200 transition-colors ${cursorStyle}`}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
     >
       {tile.letter}
     </div>
   );
 };
-
-export default Tile;

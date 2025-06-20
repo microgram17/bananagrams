@@ -1,39 +1,46 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
-import TileUI from '../Tile'; // Using the consolidated Tile component
+import { Tile as TileComponent } from '../Tile';
 import { Tile, DraggedItem } from '../../types';
-import './PlayerHand.css';
 
 interface PlayerHandProps {
   tiles: Tile[];
   onDropTile: (item: DraggedItem) => void;
-  onTileClick: (tile: Tile) => void;
+  onTileClick: (tile: Tile) => void; // For the "dump" action
 }
 
-const PlayerHand: React.FC<PlayerHandProps> = ({ tiles, onDropTile, onTileClick }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
+export const PlayerHand: React.FC<PlayerHandProps> = ({ tiles, onDropTile, onTileClick }) => {
+  const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'tile',
     drop: (item: DraggedItem) => onDropTile(item),
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
+      canDrop: !!monitor.canDrop(),
     }),
   }));
 
+  const getBackgroundColor = () => {
+    if (isOver && canDrop) return 'bg-blue-100';
+    return 'bg-gray-100';
+  };
+
   return (
-    <div ref={drop} className={`player-hand ${isOver ? 'is-over' : ''}`}>
-      <h2>Your Tiles</h2>
-      <div className="tiles-container">
+    <div
+      ref={drop}
+      className={`p-4 rounded-lg shadow-md transition-colors ${getBackgroundColor()}`}
+    >
+      <h2 className="text-xl font-bold mb-3 text-gray-700">Your Tiles ({tiles.length})</h2>
+      <p className="text-sm text-gray-500 mb-3">Click a tile to dump it.</p>
+      <div className="flex flex-wrap gap-2 justify-center">
         {tiles.map((tile) => (
-          <TileUI
+          <TileComponent
             key={tile.id}
             tile={tile}
+            source="hand"
             onClick={onTileClick}
-            origin={{ type: 'hand' }}
           />
         ))}
       </div>
     </div>
   );
 };
-
-export default PlayerHand;

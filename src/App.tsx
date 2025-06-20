@@ -1,58 +1,78 @@
 import React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { useGame } from "./hooks/useGame";
-import Board from "./components/Board";
-import PlayerHand from "./components/PlayerHand";
-import { Tile, DraggedItem } from "./types";
-import "./App.css";
+import { Board } from "./components/Board";
+import { PlayerHand } from "./components/PlayerHand";
+import { Controls } from "./components/Controls";
+import { useGameStore, GameState, GameActions } from "./store/useGameStore";
+import { DraggedItem } from "./types";
 
 function App() {
   const {
-    gameState,
-    handTiles,
+    status,
     board,
+    playerHand,
     message,
+    playerCount,
+    setPlayerCount,
     startGame,
     skala,
     dumpa,
     moveTile,
-  } = useGame();
+    checkWinCondition,
+  } = useGameStore((state: GameState & GameActions) => ({
+    status: state.status,
+    board: state.board,
+    playerHand: state.playerHand,
+    message: state.message,
+    playerCount: state.playerCount,
+    setPlayerCount: state.setPlayerCount,
+    startGame: state.startGame,
+    skala: state.skala,
+    dumpa: state.dumpa,
+    moveTile: state.moveTile,
+    checkWinCondition: state.checkWinCondition,
+  }));
 
-  // NOTE: The onDropTile prop for your Board component needs to be updated
-  // to pass the full DraggedItem from react-dnd, not just the tile.
   const moveTileToBoard = (item: DraggedItem, x: number, y: number) => {
     moveTile(item, { x, y });
   };
 
-  // NOTE: The onDropTile prop for your PlayerHand component also needs to be updated.
   const moveTileToHand = (item: DraggedItem) => {
     moveTile(item, "hand");
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="App">
-        <h1>Bananagrams</h1>
-        <div className="game-controls">
-          {gameState === "pre-game" ? (
-            <button onClick={() => startGame(1)}>Start Game</button>
-          ) : (
-            <>
-              <button onClick={skala}>Skala</button>
-              {/* You can add a button to check words or other controls here */}
-            </>
-          )}
-        </div>
-        <p className="message">{message}</p>
-        <div className="game-area">
-          <Board board={board} onDropTile={moveTileToBoard} />
-          <PlayerHand
-            tiles={handTiles}
-            onDropTile={moveTileToHand}
-            onTileClick={dumpa}
-          />
-        </div>
+      <div className="App bg-yellow-50 min-h-screen font-sans p-4">
+        <header className="text-center mb-4">
+          <h1 className="text-5xl font-bold text-yellow-600">Bananagrams</h1>
+        </header>
+
+        <main className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-grow">
+            <Board board={board} onDropTile={moveTileToBoard} />
+          </div>
+
+          <aside className="lg:w-1/3 flex flex-col gap-4">
+            <Controls
+              status={status}
+              playerCount={playerCount}
+              onPlayerCountChange={setPlayerCount}
+              onStart={startGame}
+              onPeel={skala}
+              onCheck={checkWinCondition}
+            />
+            <p className="message text-center p-2 bg-yellow-100 rounded-md">
+              {message}
+            </p>
+            <PlayerHand
+              tiles={playerHand}
+              onDropTile={moveTileToHand}
+              onTileClick={dumpa}
+            />
+          </aside>
+        </main>
       </div>
     </DndProvider>
   );
