@@ -99,7 +99,7 @@ function App() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="App min-h-screen font-sans p-1 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
-        <main className="grid grid-cols-1 lg:grid-cols-5 gap-2" style={{ marginLeft: '1%', marginRight: '1%' }}>
+        <main className="grid grid-cols-1 lg:grid-cols-5 gap-2 mt-6" style={{ marginLeft: '1%', marginRight: '1%' }}>
           <div className="lg:col-span-3 flex flex-col items-start">
             <div className="board-container">
               <Board
@@ -112,11 +112,11 @@ function App() {
           </div>
 
           <aside className="lg:col-span-2 flex flex-col gap-3">
-            <header className="mb-1">
-              <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
+            <header className="mb-3">
+              <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
                 Bananagrams
               </h1>
-              <p className="text-gray-600 text-sm">Drag tiles to build your word grid</p>
+              <p className="text-gray-600 text-base mt-1">Drag tiles to build your word grid</p>
             </header>
             
             <Controls
