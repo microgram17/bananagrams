@@ -13,3 +13,5 @@ docker-compose.yml
 
 # Ignore logs
 npm-debug.log
+
+roadmap.txt
