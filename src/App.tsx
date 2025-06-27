@@ -129,17 +129,17 @@ function App() {
               typingDirection={typingDirection}
             />
             
-            <div className="bg-white bg-opacity-80 rounded-lg p-3 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
-              <p className="message font-medium text-gray-700">
-                {message}
-              </p>
-            </div>
-            
             <PlayerHand
               tiles={playerHand}
               onDropTile={moveTileToHand}
               onTileClick={dumpa}
             />
+            
+            <div className="bg-white bg-opacity-80 rounded-lg p-3 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
+              <p className="message font-medium text-gray-700">
+                {message}
+              </p>
+            </div>
           </aside>
         </main>
       </div>
