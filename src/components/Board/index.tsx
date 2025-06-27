@@ -11,7 +11,7 @@ interface BoardProps {
 
 export const Board: React.FC<BoardProps> = ({ board, onDropTile, selectedCell, onCellClick }) => {
   return (
-    <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg shadow-inner border border-yellow-200 p-1.5">
+    <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg shadow-inner">
       {board.map((row, y) => (
         <div key={y} className="flex">
           {row.map((tile, x) => (

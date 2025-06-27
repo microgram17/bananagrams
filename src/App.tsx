@@ -98,17 +98,10 @@ function App() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="App min-h-screen font-sans p-4 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
-        <header className="text-center mb-6 pt-4">
-          <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
-            Bananagrams
-          </h1>
-          <p className="text-gray-600 mt-2">Drag tiles to build your word grid</p>
-        </header>
-
-        <main className="mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ marginLeft: '2%', marginRight: '5%' }}>
-          <div className="lg:col-span-3 flex justify-start items-start">
-            <div className="board-container inline-block">
+      <div className="App min-h-screen font-sans p-1 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
+        <main className="grid grid-cols-1 lg:grid-cols-5 gap-2" style={{ marginLeft: '1%', marginRight: '1%' }}>
+          <div className="lg:col-span-3 flex flex-col items-start">
+            <div className="board-container">
               <Board
                 board={board}
                 onDropTile={moveTileToBoard}
@@ -118,7 +111,14 @@ function App() {
             </div>
           </div>
 
-          <aside className="flex flex-col gap-5">
+          <aside className="lg:col-span-2 flex flex-col gap-3">
+            <header className="mb-1">
+              <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
+                Bananagrams
+              </h1>
+              <p className="text-gray-600 text-sm">Drag tiles to build your word grid</p>
+            </header>
+            
             <Controls
               status={status}
               playerCount={playerCount}
@@ -129,7 +129,7 @@ function App() {
               typingDirection={typingDirection}
             />
             
-            <div className="bg-white bg-opacity-80 rounded-lg p-4 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
+            <div className="bg-white bg-opacity-80 rounded-lg p-3 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
               <p className="message font-medium text-gray-700">
                 {message}
               </p>
