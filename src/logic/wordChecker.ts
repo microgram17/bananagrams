@@ -16,42 +16,38 @@ export async function loadWordList(): Promise<void> {
 export function extractWordsFromBoard(board: Board): string[] {
   const words: string[] = [];
 
+  const BOARD_SIZE = board.length;
+
   // Extract horizontal words
-  for (let y = 0; y < board.length; y++) {
-    let word = "";
-    for (let x = 0; x < board[y].length; x++) {
-      const tile = board[y][x];
-      if (tile) {
-        word += tile.letter;
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    let word = '';
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      if (board[y][x]) {
+        word += board[y][x]!.letter;
+      } else if (word.length > 1) {
+        words.push(word);
+        word = '';
       } else {
-        if (word.length > 1) {
-          words.push(word);
-        }
-        word = ""; // Reset word when encountering an empty cell
+        word = '';
       }
     }
-    if (word.length > 1) {
-      words.push(word); // Add the last word in the row
-    }
+    if (word.length > 1) words.push(word);
   }
 
   // Extract vertical words
-  for (let x = 0; x < board[0].length; x++) {
-    let word = "";
-    for (let y = 0; y < board.length; y++) {
-      const tile = board[y][x];
-      if (tile) {
-        word += tile.letter;
+  for (let x = 0; x < BOARD_SIZE; x++) {
+    let word = '';
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      if (board[y][x]) {
+        word += board[y][x]!.letter;
+      } else if (word.length > 1) {
+        words.push(word);
+        word = '';
       } else {
-        if (word.length > 1) {
-          words.push(word);
-        }
-        word = ""; // Reset word when encountering an empty cell
+        word = '';
       }
     }
-    if (word.length > 1) {
-      words.push(word); // Add the last word in the column
-    }
+    if (word.length > 1) words.push(word);
   }
 
   return words;
@@ -60,13 +56,60 @@ export function extractWordsFromBoard(board: Board): string[] {
 export function checkVictory(board: Board): boolean {
   if (board.flat().every(cell => cell === null)) return false;
 
+  const BOARD_SIZE = board.length;
+
+  // Extract all words from the board
   const words = extractWordsFromBoard(board);
   if (words.length === 0) return false;
 
-  // Check for disconnected tiles and if all words are valid
-  // Placeholder logic:
+  // Check if all words are valid
   const allWordsValid = words.every(word => wordList.has(word.toLowerCase()));
-  const hasFloatingTiles = false; // Placeholder for island check
+  if (!allWordsValid) return false;
 
-  return allWordsValid && !hasFloatingTiles;
+  // Check for connectivity using BFS
+  const visited = new Set<string>();
+  const tilesOnBoard: { x: number; y: number }[] = [];
+
+  board.forEach((row, y) =>
+    row.forEach((tile, x) => {
+      if (tile) tilesOnBoard.push({ x, y });
+    })
+  );
+
+  if (tilesOnBoard.length === 0) return false;
+
+  const queue: { x: number; y: number }[] = [tilesOnBoard[0]];
+  visited.add(`${tilesOnBoard[0].x},${tilesOnBoard[0].y}`);
+
+  while (queue.length > 0) {
+    const { x, y } = queue.shift()!;
+    const neighbors = [
+      { x: x - 1, y },
+      { x: x + 1, y },
+      { x, y: y - 1 },
+      { x, y: y + 1 },
+    ];
+
+    for (const neighbor of neighbors) {
+      const { x: nx, y: ny } = neighbor;
+      if (
+        nx >= 0 &&
+        ny >= 0 &&
+        nx < BOARD_SIZE &&
+        ny < BOARD_SIZE &&
+        board[ny][nx] &&
+        !visited.has(`${nx},${ny}`)
+      ) {
+        visited.add(`${nx},${ny}`);
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  // Ensure all tiles are connected
+  const allTilesConnected = tilesOnBoard.every(({ x, y }) =>
+    visited.has(`${x},${y}`)
+  );
+
+  return allWordsValid && allTilesConnected;
 }
