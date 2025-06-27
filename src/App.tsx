@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Board } from "./components/Board";
@@ -6,6 +6,7 @@ import { PlayerHand } from "./components/PlayerHand";
 import { Controls } from "./components/Controls";
 import { useGameStore, GameState, GameActions } from "./store/useGameStore";
 import { DraggedItem } from "./types";
+import { loadWordList } from "./logic/wordChecker";
 
 function App() {
   const {
@@ -33,6 +34,13 @@ function App() {
     moveTile: state.moveTile,
     checkWinCondition: state.checkWinCondition,
   }));
+
+  useEffect(() => {
+    // Load the word list when the app starts
+    loadWordList().catch(() => {
+      console.error("Failed to load word list.");
+    });
+  }, []);
 
   const moveTileToBoard = (item: DraggedItem, x: number, y: number) => {
     moveTile(item, { x, y });

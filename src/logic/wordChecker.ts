@@ -1,15 +1,22 @@
-import { Board, Tile } from "../types";
+import { Board } from "../types";
 
-let wordList: Set<string> = new Set();
+export let wordList: Set<string> = new Set(); // Export wordList
 
 export async function loadWordList(): Promise<void> {
   try {
-    const response = await fetch('/words.json');
-    const words: string[] = await response.json();
+    const response = await fetch('/saol2018clean.csv'); // Update path to match public folder
+    const csvText = await response.text();
+
+    const rows = csvText.split('\n');
+    const words = rows.map(row => {
+      const columns = row.split(',');
+      return columns[1]?.trim(); // Extract the second column
+    }).filter(Boolean);
+
     wordList = new Set(words.map(word => word.toLowerCase()));
     console.log('Word list loaded successfully.');
   } catch (error) {
-    console.error('Failed to load word list:', error);
+    console.error('Error checking words. Could not load dictionary.', error);
   }
 }
 

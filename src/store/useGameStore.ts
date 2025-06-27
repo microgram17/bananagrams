@@ -8,6 +8,7 @@ import {
   Letter,
 } from '../types';
 import { BOARD_SIZE, getStartingTileCount } from '../gameConfig';
+import { extractWordsFromBoard, wordList } from '../logic/wordChecker';
 
 // Helper function to create an empty board
 const createInitialBoard = (): Board =>
@@ -172,7 +173,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const { board, playerHand } = get();
 
     if (playerHand.length > 0) {
-      set({ message: 'You must use all your tiles to win!' });
+      set({ message: 'You must use all your tiles to win! Ensure your hand is empty.' });
       return;
     }
 
@@ -184,58 +185,26 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     );
 
     if (tilesOnBoard.length === 0) {
-      set({ message: 'Board is empty. Nothing to check.' });
+      set({ message: 'Board is empty. Place tiles to form words before checking.' });
       return;
     }
 
     try {
-      const response = await fetch('/words.json');
-      if (!response.ok) throw new Error('Dictionary not found');
-      const wordData = await response.json();
-      const wordSet = new Set(wordData.words.map((w: string) => w.toUpperCase()));
-
-      const invalidWords: string[] = [];
-      const foundWords = new Set<string>();
-
-      // Parse horizontal and vertical words
-      for (let y = 0; y < BOARD_SIZE; y++) {
-        for (let x = 0; x < BOARD_SIZE; x++) {
-          // Horizontal
-          if (board[y][x] && (x === 0 || !board[y][x - 1])) {
-            let word = '';
-            let currentX = x;
-            while (currentX < BOARD_SIZE && board[y][currentX]) {
-              word += board[y][currentX]!.letter;
-              currentX++;
-            }
-            if (word.length > 1) {
-              foundWords.add(word);
-              if (!wordSet.has(word)) invalidWords.push(word);
-            }
-          }
-          // Vertical
-          if (board[y][x] && (y === 0 || !board[y - 1][x])) {
-            let word = '';
-            let currentY = y;
-            while (currentY < BOARD_SIZE && board[currentY][x]) {
-              word += board[currentY][x]!.letter;
-              currentY++;
-            }
-            if (word.length > 1) {
-              foundWords.add(word);
-              if (!wordSet.has(word)) invalidWords.push(word);
-            }
-          }
-        }
+      // Ensure word list is loaded
+      if (wordList.size === 0) {
+        throw new Error('Word list is empty. Dictionary not loaded.');
       }
 
+      const words = extractWordsFromBoard(board);
+      const invalidWords = words.filter(word => !wordList.has(word.toLowerCase()));
+
       if (invalidWords.length > 0) {
-        set({ message: `Invalid words: ${[...new Set(invalidWords)].join(', ')}` });
+        set({ message: `Invalid words detected: ${[...new Set(invalidWords)].join(', ')}. Please correct them.` });
         return;
       }
 
-      if (foundWords.size === 0 && tilesOnBoard.length > 1) {
-        set({ message: "Tiles must form words of at least 2 letters." });
+      if (words.length === 0) {
+        set({ message: 'No valid words found on the board. Ensure tiles form words of at least 2 letters.' });
         return;
       }
 
@@ -257,14 +226,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       }
 
       if (visited.size !== tilesOnBoard.length) {
-        set({ message: 'All tiles must be connected in a single group.' });
+        set({ message: 'All tiles must be connected in a single group. Ensure no isolated tiles exist.' });
         return;
       }
 
-      set({ status: 'won', message: 'Bananagrams! You win!' });
+      set({ status: 'won', message: 'Bananagrams! You win! Congratulations!' });
     } catch (e) {
-      set({ message: 'Error checking words. Could not load dictionary.' });
-      console.error(e);
+      const error = e as Error; // Explicitly cast `e` to `Error`
+      set({ message: error.message || 'An error occurred while checking the board. Please try again.' });
+      console.error(error);
     }
   },
 }));
