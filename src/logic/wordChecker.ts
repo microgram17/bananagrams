@@ -14,12 +14,47 @@ export async function loadWordList(): Promise<void> {
 }
 
 export function extractWordsFromBoard(board: Board): string[] {
-  // This is a complex function. A placeholder is provided.
-  // You would need to implement logic to traverse the board,
-  // identify contiguous tiles horizontally and vertically,
-  // and form words from them.
-  console.log("extractWordsFromBoard needs to be implemented.");
-  return [];
+  const words: string[] = [];
+
+  // Extract horizontal words
+  for (let y = 0; y < board.length; y++) {
+    let word = "";
+    for (let x = 0; x < board[y].length; x++) {
+      const tile = board[y][x];
+      if (tile) {
+        word += tile.letter;
+      } else {
+        if (word.length > 1) {
+          words.push(word);
+        }
+        word = ""; // Reset word when encountering an empty cell
+      }
+    }
+    if (word.length > 1) {
+      words.push(word); // Add the last word in the row
+    }
+  }
+
+  // Extract vertical words
+  for (let x = 0; x < board[0].length; x++) {
+    let word = "";
+    for (let y = 0; y < board.length; y++) {
+      const tile = board[y][x];
+      if (tile) {
+        word += tile.letter;
+      } else {
+        if (word.length > 1) {
+          words.push(word);
+        }
+        word = ""; // Reset word when encountering an empty cell
+      }
+    }
+    if (word.length > 1) {
+      words.push(word); // Add the last word in the column
+    }
+  }
+
+  return words;
 }
 
 export function checkVictory(board: Board): boolean {
