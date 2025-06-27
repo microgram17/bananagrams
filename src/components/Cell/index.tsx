@@ -41,7 +41,7 @@ export const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile, isSelected, 
     <div
       ref={drop}
       onClick={onClick}
-      className={`w-11 h-11 flex items-center justify-center transition-all duration-150 ease-in-out cursor-pointer ${getBackgroundColor()} ${borderStyle} ${hoverEffect}`}
+      className={`w-10 h-10 flex items-center justify-center transition-all duration-150 ease-in-out cursor-pointer ${getBackgroundColor()} ${borderStyle} ${hoverEffect}`}
     >
       {tile && (
         <div className={tile.isRemoving ? "tile-remove" : "tile-pop-in"}>

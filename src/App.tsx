@@ -106,9 +106,9 @@ function App() {
           <p className="text-gray-600 mt-2">Drag tiles to build your word grid</p>
         </header>
 
-        <main className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white bg-opacity-70 p-4 rounded-xl shadow-lg backdrop-blur-sm overflow-hidden">
-            <div className="board-container h-[calc(100vh-200px)] overflow-auto">
+        <main className="mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ marginLeft: '2%', marginRight: '5%' }}>
+          <div className="lg:col-span-3 flex justify-start items-start">
+            <div className="board-container inline-block">
               <Board
                 board={board}
                 onDropTile={moveTileToBoard}

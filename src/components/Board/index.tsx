@@ -11,24 +11,22 @@ interface BoardProps {
 
 export const Board: React.FC<BoardProps> = ({ board, onDropTile, selectedCell, onCellClick }) => {
   return (
-    <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl shadow-inner border border-yellow-200 h-full flex items-center justify-center">
-      <div className="inline-block bg-white bg-opacity-40 p-3 rounded-lg shadow-sm transform scale-[0.95]">
-        {board.map((row, y) => (
-          <div key={y} className="flex">
-            {row.map((tile, x) => (
-              <Cell
-                key={tile ? tile.id : `${x}-${y}`}
-                x={x}
-                y={y}
-                tile={tile}
-                onDropTile={onDropTile}
-                isSelected={!!selectedCell && selectedCell.x === x && selectedCell.y === y}
-                onClick={() => onCellClick({ x, y })}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+    <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg shadow-inner border border-yellow-200 p-1.5">
+      {board.map((row, y) => (
+        <div key={y} className="flex">
+          {row.map((tile, x) => (
+            <Cell
+              key={tile ? tile.id : `${x}-${y}`}
+              x={x}
+              y={y}
+              tile={tile}
+              onDropTile={onDropTile}
+              isSelected={!!selectedCell && selectedCell.x === x && selectedCell.y === y}
+              onClick={() => onCellClick({ x, y })}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 };
