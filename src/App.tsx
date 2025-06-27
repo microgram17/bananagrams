@@ -99,8 +99,8 @@ function App() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="App min-h-screen font-sans p-1 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
-        <main className="grid grid-cols-1 lg:grid-cols-5 gap-2 mt-6" style={{ marginLeft: '1%', marginRight: '1%' }}>
-          <div className="lg:col-span-3 flex flex-col items-start">
+        <main className="grid grid-cols-1 lg:grid-cols-5 gap-2 mt-6" style={{ marginLeft: '3%', marginRight: '3%' }}>
+          <div className="lg:col-span-3 flex flex-col items-start pl-4">
             <div className="board-container">
               <Board
                 board={board}
