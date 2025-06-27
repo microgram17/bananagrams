@@ -4,6 +4,7 @@ import { GameStatus } from '../../types';
 interface ControlsProps {
   status: GameStatus;
   playerCount: number;
+  typingDirection: 'horizontal' | 'vertical';
   onPlayerCountChange: (count: number) => void;
   onStart: () => void;
   onPeel: () => void;
@@ -13,6 +14,7 @@ interface ControlsProps {
 export const Controls: React.FC<ControlsProps> = ({
   status,
   playerCount,
+  typingDirection,
   onPlayerCountChange,
   onStart,
   onPeel,
@@ -54,20 +56,25 @@ export const Controls: React.FC<ControlsProps> = ({
           </button>
         </>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={onPeel}
-            className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-          >
-            Skala! (Peel)
-          </button>
-          <button
-            onClick={onCheck}
-            className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition-colors"
-          >
-            Check Board
-          </button>
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onPeel}
+              className="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+            >
+              Skala! (Peel)
+            </button>
+            <button
+              onClick={onCheck}
+              className="bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600 transition-colors"
+            >
+              Check Board
+            </button>
+          </div>
+          <div className="text-center text-sm text-gray-600 mt-2">
+            Typing: <span className="font-bold">{typingDirection.toUpperCase()}</span> (Press TAB)
+          </div>
+        </>
       )}
     </div>
   );

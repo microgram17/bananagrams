@@ -36,6 +36,8 @@ export interface GameState {
   tilePool: Tile[];
   message: string;
   playerCount: number;
+  selectedCell: Position | null; // To track the selected cell for keyboard input
+  typingDirection: 'horizontal' | 'vertical'; // To track typing direction
 }
 
 export interface GameActions {
@@ -45,6 +47,12 @@ export interface GameActions {
   skala: () => void;
   dumpa: (tileToDump: Tile) => void;
   checkWinCondition: () => Promise<void>;
+  // New actions for keyboard controls
+  setSelectedCell: (position: Position | null) => void;
+  toggleTypingDirection: () => void;
+  moveSelectedCell: (direction: 'up' | 'down' | 'left' | 'right') => void;
+  placeTileByKey: (letter: Letter) => void;
+  handleBackspace: () => void;
 }
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
@@ -54,6 +62,8 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   tilePool: [],
   message: 'Select player count and start the game!',
   playerCount: 1,
+  selectedCell: null,
+  typingDirection: 'horizontal',
 
   setPlayerCount: (count) => set({ playerCount: count }),
 
@@ -166,6 +176,109 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         tilePool: newPool,
         message: 'Dumped 1 tile for 3 new ones.',
       };
+    });
+  },
+
+  // --- NEW ACTIONS FOR KEYBOARD CONTROLS ---
+
+  setSelectedCell: (position) => {
+    set({ selectedCell: position });
+  },
+
+  toggleTypingDirection: () => {
+    set((state) => ({
+      typingDirection:
+        state.typingDirection === 'horizontal' ? 'vertical' : 'horizontal',
+      message: `Typing direction: ${
+        state.typingDirection === 'horizontal' ? 'vertical' : 'horizontal'
+      }`,
+    }));
+  },
+
+  moveSelectedCell: (direction) => {
+    set((state) => {
+      if (!state.selectedCell) return {};
+      const { x, y } = state.selectedCell;
+      let newPos: Position = { x, y };
+      if (direction === 'up') newPos = { x, y: Math.max(0, y - 1) };
+      if (direction === 'down')
+        newPos = { x, y: Math.min(BOARD_SIZE - 1, y + 1) };
+      if (direction === 'left') newPos = { x: Math.max(0, x - 1), y };
+      if (direction === 'right')
+        newPos = { x: Math.min(BOARD_SIZE - 1, x + 1), y };
+      return { selectedCell: newPos };
+    });
+  },
+
+  placeTileByKey: (letter) => {
+    set((state) => {
+      const { selectedCell, playerHand, board, typingDirection } = state;
+      if (!selectedCell) return {};
+
+      const tileIndex = playerHand.findIndex(
+        (t) => t.letter.toUpperCase() === letter.toUpperCase()
+      );
+
+      if (tileIndex === -1) {
+        return { message: `You do not have a '${letter.toUpperCase()}' tile!` };
+      }
+
+      const tileToPlace = playerHand[tileIndex];
+      const newPlayerHand = [...playerHand];
+      newPlayerHand.splice(tileIndex, 1);
+
+      const newBoard = board.map((row) => [...row]);
+      const { x, y } = selectedCell;
+
+      const tileAtDestination = newBoard[y][x];
+      if (tileAtDestination) {
+        newPlayerHand.push(tileAtDestination);
+      }
+
+      newBoard[y][x] = tileToPlace;
+
+      let nextSelectedCell = { ...selectedCell };
+      if (typingDirection === 'horizontal') {
+        nextSelectedCell.x = Math.min(BOARD_SIZE - 1, nextSelectedCell.x + 1);
+      } else {
+        nextSelectedCell.y = Math.min(BOARD_SIZE - 1, nextSelectedCell.y + 1);
+      }
+
+      return {
+        playerHand: newPlayerHand,
+        board: newBoard,
+        selectedCell: nextSelectedCell,
+        message: '',
+      };
+    });
+  },
+
+  handleBackspace: () => {
+    set((state) => {
+      const { selectedCell, board, playerHand, typingDirection } = state;
+      if (!selectedCell) return {};
+
+      const { x, y } = selectedCell;
+      const tileOnCell = board[y][x];
+
+      // If there's a tile on the current cell, remove it.
+      if (tileOnCell) {
+        const newBoard = board.map((row) => [...row]);
+        newBoard[y][x] = null;
+        const newPlayerHand = [...playerHand, tileOnCell];
+        return {
+          board: newBoard,
+          playerHand: newPlayerHand,
+          message: `Returned '${tileOnCell.letter}' to hand.`,
+        };
+      }
+
+      // If the cell is empty, move the selection back.
+      const prevSelectedCell = {
+        x: typingDirection === 'horizontal' ? Math.max(0, x - 1) : x,
+        y: typingDirection === 'vertical' ? Math.max(0, y - 1) : y,
+      };
+      return { selectedCell: prevSelectedCell };
     });
   },
 
