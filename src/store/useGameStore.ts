@@ -233,7 +233,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         set({ message: `Invalid words: ${[...new Set(invalidWords)].join(', ')}` });
         return;
       }
-      
+
       if (foundWords.size === 0 && tilesOnBoard.length > 1) {
         set({ message: "Tiles must form words of at least 2 letters." });
         return;
@@ -244,14 +244,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       const visited = new Set<string>([`${toVisit[0].x},${toVisit[0].y}`]);
       const tilePositions = new Set(tilesOnBoard.map(t => `${t.pos.x},${t.pos.y}`));
       let head = 0;
+
       while (head < toVisit.length) {
         const { x, y } = toVisit[head++];
-        [{x:x+1,y},{x:x-1,y},{x,y:y+1},{x,y:y-1}].forEach(n => {
-            const key = `${n.x},${n.y}`;
-            if(tilePositions.has(key) && !visited.has(key)) {
-                visited.add(key);
-                toVisit.push(n);
-            }
+        [{ x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }].forEach(n => {
+          const key = `${n.x},${n.y}`;
+          if (tilePositions.has(key) && !visited.has(key)) {
+            visited.add(key);
+            toVisit.push(n);
+          }
         });
       }
 
