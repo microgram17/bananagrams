@@ -16,6 +16,10 @@
     animation: pulse-shadow 2s infinite;
   }
 
+  .strong-pulse-shadow {
+    animation: strong-pulse-shadow 1.5s infinite;
+  }
+
   .tile-remove {
     animation: remove-out 0.3s ease-out forwards;
   }
@@ -52,6 +56,16 @@
   }
   50% {
     box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+  }
+}
+
+@keyframes strong-pulse-shadow {
+  0%,
+  100% {
+    box-shadow: 0 0 2px rgba(249, 115, 22, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 10px 4px rgba(249, 115, 22, 0.8);
   }
 }
 
