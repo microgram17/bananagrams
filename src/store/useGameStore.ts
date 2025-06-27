@@ -263,14 +263,32 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       // If there's a tile on the current cell, remove it.
       if (tileOnCell) {
+        // First, mark the tile for removal animation
+        // We'll add a flag to the tile to indicate it's being removed
         const newBoard = board.map((row) => [...row]);
-        newBoard[y][x] = null;
-        const newPlayerHand = [...playerHand, tileOnCell];
-        return {
-          board: newBoard,
-          playerHand: newPlayerHand,
-          message: `Returned '${tileOnCell.letter}' to hand.`,
-        };
+        if (tileOnCell) {
+          newBoard[y][x] = { ...tileOnCell, isRemoving: true };
+          
+          // Set a timeout to actually remove the tile after animation completes
+          setTimeout(() => {
+            set((state) => {
+              const updatedBoard = state.board.map((row) => [...row]);
+              if (updatedBoard[y][x]?.isRemoving) {
+                updatedBoard[y][x] = null;
+                return { 
+                  board: updatedBoard,
+                  playerHand: [...state.playerHand, tileOnCell]
+                };
+              }
+              return {};
+            });
+          }, 280); // Slightly less than animation duration
+          
+          return {
+            board: newBoard,
+            message: `Returning '${tileOnCell.letter}' to hand...`,
+          };
+        }
       }
 
       // If the cell is empty, move the selection back.

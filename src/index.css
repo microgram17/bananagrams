@@ -1,3 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Add this animation layer */
+@layer components {
+  .tile-pop-in {
+    animation: pop-in 0.2s ease-out forwards;
+  }
+
+  .tile-bounce {
+    animation: bounce 0.5s ease-in-out;
+  }
+
+  .pulse-shadow {
+    animation: pulse-shadow 2s infinite;
+  }
+
+  .tile-remove {
+    animation: remove-out 0.3s ease-out forwards;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-shadow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(250, 204, 21, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+  }
+}
+
+@keyframes remove-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5) rotate(5deg);
+    opacity: 0;
+  }
+}

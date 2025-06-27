@@ -6,6 +6,7 @@ export type Letter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' |
 export interface Tile {
   id: string; // Unique identifier for drag-and-drop
   letter: Letter;
+  isRemoving?: boolean; // Flag for removal animation
 }
 
 export interface Position {

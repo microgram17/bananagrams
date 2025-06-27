@@ -27,18 +27,25 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({ tiles, onDropTile, onTil
   return (
     <div
       ref={drop}
-      className={`p-4 rounded-lg shadow-md transition-colors ${getBackgroundColor()}`}
+      className={`p-5 rounded-lg shadow-md transition-all duration-300 ${getBackgroundColor()} backdrop-blur-sm border border-gray-200`}
     >
-      <h2 className="text-xl font-bold mb-3 text-gray-700">Your Tiles ({tiles.length})</h2>
-      <p className="text-sm text-gray-500 mb-3">Click a tile to dump it.</p>
-      <div className="flex flex-wrap gap-2 justify-center">
-        {tiles.map((tile) => (
-          <TileComponent
-            key={tile.id}
-            tile={tile}
-            source="hand"
-            onClick={onTileClick}
-          />
+      <h2 className="text-xl font-bold mb-3 text-gray-800 flex items-center">
+        <span className="bg-yellow-300 w-8 h-8 flex items-center justify-center rounded-full mr-2 shadow-sm">
+          {tiles.length}
+        </span>
+        Your Tiles
+      </h2>
+      <p className="text-sm text-gray-600 mb-4 italic">Click a tile to dump it.</p>
+      <div className="flex flex-wrap gap-3 justify-center">
+        {tiles.map((tile, index) => (
+          <div key={tile.id} className="transform hover:-translate-y-1 transition-transform" 
+               style={{animationDelay: `${index * 0.05}s`}}>
+            <TileComponent
+              tile={tile}
+              source="hand"
+              onClick={onTileClick}
+            />
+          </div>
         ))}
       </div>
     </div>

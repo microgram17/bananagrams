@@ -11,8 +11,8 @@ interface BoardProps {
 
 export const Board: React.FC<BoardProps> = ({ board, onDropTile, selectedCell, onCellClick }) => {
   return (
-    <div className="p-4 bg-yellow-100 rounded-lg shadow-inner overflow-auto">
-      <div className="inline-block">
+    <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-xl shadow-inner border border-yellow-200 h-full flex items-center justify-center">
+      <div className="inline-block bg-white bg-opacity-40 p-3 rounded-lg shadow-sm transform scale-[0.95]">
         {board.map((row, y) => (
           <div key={y} className="flex">
             {row.map((tile, x) => (

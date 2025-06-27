@@ -98,22 +98,27 @@ function App() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="App bg-yellow-50 min-h-screen font-sans p-4">
-        <header className="text-center mb-4">
-          <h1 className="text-5xl font-bold text-yellow-600">Bananagrams</h1>
+      <div className="App min-h-screen font-sans p-4 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
+        <header className="text-center mb-6 pt-4">
+          <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
+            Bananagrams
+          </h1>
+          <p className="text-gray-600 mt-2">Drag tiles to build your word grid</p>
         </header>
 
-        <main className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-grow">
-            <Board
-              board={board}
-              onDropTile={moveTileToBoard}
-              selectedCell={selectedCell}
-              onCellClick={setSelectedCell}
-            />
+        <main className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white bg-opacity-70 p-4 rounded-xl shadow-lg backdrop-blur-sm overflow-hidden">
+            <div className="board-container h-[calc(100vh-200px)] overflow-auto">
+              <Board
+                board={board}
+                onDropTile={moveTileToBoard}
+                selectedCell={selectedCell}
+                onCellClick={setSelectedCell}
+              />
+            </div>
           </div>
 
-          <aside className="lg:w-1/3 flex flex-col gap-4">
+          <aside className="flex flex-col gap-5">
             <Controls
               status={status}
               playerCount={playerCount}
@@ -123,9 +128,13 @@ function App() {
               onCheck={checkWinCondition}
               typingDirection={typingDirection}
             />
-            <p className="message text-center p-2 bg-yellow-100 rounded-md">
-              {message}
-            </p>
+            
+            <div className="bg-white bg-opacity-80 rounded-lg p-4 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
+              <p className="message font-medium text-gray-700">
+                {message}
+              </p>
+            </div>
+            
             <PlayerHand
               tiles={playerHand}
               onDropTile={moveTileToHand}
