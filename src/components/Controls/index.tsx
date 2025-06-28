@@ -5,6 +5,8 @@ interface ControlsProps {
   status: GameStatus;
   playerCount: number;
   typingDirection: 'horizontal' | 'vertical';
+  tilesInPool: number;
+  simulatedPlayerTiles: number[];
   onPlayerCountChange: (count: number) => void;
   onStart: () => void;
   onPeel: () => void;
@@ -15,6 +17,8 @@ export const Controls: React.FC<ControlsProps> = ({
   status,
   playerCount,
   typingDirection,
+  tilesInPool,
+  simulatedPlayerTiles,
   onPlayerCountChange,
   onStart,
   onPeel,
@@ -88,6 +92,25 @@ export const Controls: React.FC<ControlsProps> = ({
             <span className="ml-2 text-gray-500">(Press TAB to toggle)</span>
           </div>
         </>
+      )}
+
+      {!isPreGame && (
+        <div className="text-center text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
+          <div className="mb-2">
+            <span className="font-medium">Tiles in Pool:</span> 
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-mono">{tilesInPool}</span>
+          </div>
+          {simulatedPlayerTiles.length > 0 && (
+            <div className="text-xs text-gray-600">
+              <span className="font-medium">Other Players' Tiles:</span>{' '}
+              {simulatedPlayerTiles.map((count, index) => (
+                <span key={index} className="inline-block mx-1">
+                  Player {index + 2}: <span className="font-mono">{count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

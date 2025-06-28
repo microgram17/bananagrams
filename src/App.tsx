@@ -14,6 +14,8 @@ function App() {
     status,
     board,
     playerHand,
+    tilePool,
+    simulatedPlayerHands,
     message,
     playerCount,
     selectedCell,
@@ -33,6 +35,8 @@ function App() {
     status: state.status,
     board: state.board,
     playerHand: state.playerHand,
+    tilePool: state.tilePool,
+    simulatedPlayerHands: state.simulatedPlayerHands,
     message: state.message,
     playerCount: state.playerCount,
     selectedCell: state.selectedCell,
@@ -141,6 +145,8 @@ function App() {
               onPeel={skala}
               onCheck={checkWinCondition}
               typingDirection={typingDirection}
+              tilesInPool={tilePool.length}
+              simulatedPlayerTiles={simulatedPlayerHands.map(hand => hand.length)}
             />
             
             <PlayerHand

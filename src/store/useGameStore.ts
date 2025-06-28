@@ -29,6 +29,44 @@ const createTilePool = (): Tile[] => {
   );
 };
 
+// --- NEW HELPER FUNCTIONS FOR SIMULATED PLAYERS ---
+
+// Generate a master tile pool for the entire game
+const generateTilePool = () => {
+  const tilePool = createTilePool();
+  // Shuffle the pool
+  for (let i = tilePool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
+  }
+  return tilePool;
+};
+
+// Deal initial tiles to players
+const dealInitialTiles = (masterTilePool: Tile[], playerCount: number, tilesPerPlayer: number) => {
+  const playerHand = masterTilePool.splice(0, tilesPerPlayer);
+  const simulatedPlayerHands = Array.from({ length: playerCount - 1 }, () =>
+    masterTilePool.splice(0, tilesPerPlayer)
+  );
+  return { playerHand, simulatedPlayerHands, remainingPool: masterTilePool };
+};
+
+// Draw a specific number of tiles from the pool
+const drawTiles = (tilePool: Tile[], count: number) => {
+  const drawnTiles = tilePool.slice(0, count);
+  const remainingTiles = tilePool.slice(count);
+  return { drawn: drawnTiles, remaining: remainingTiles };
+};
+
+// Shuffle the tiles in the pool
+const shuffle = (tilePool: Tile[]) => {
+  for (let i = tilePool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
+  }
+  return tilePool;
+};
+
 export interface GameState {
   status: GameStatus;
   board: Board;
@@ -36,8 +74,10 @@ export interface GameState {
   tilePool: Tile[];
   message: string;
   playerCount: number;
-  selectedCell: Position | null; // To track the selected cell for keyboard input
-  typingDirection: 'horizontal' | 'vertical'; // To track typing direction
+  selectedCell: Position | null;
+  typingDirection: 'horizontal' | 'vertical';
+  // Add simulated players
+  simulatedPlayerHands: Tile[][];
 }
 
 export interface GameActions {
@@ -64,27 +104,31 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   playerCount: 1,
   selectedCell: null,
   typingDirection: 'horizontal',
+  // Initialize simulated player hands
+  simulatedPlayerHands: [],
 
   setPlayerCount: (count) => set({ playerCount: count }),
 
   startGame: () => {
     const { playerCount } = get();
-    const tilePool = createTilePool();
-    // Shuffle the pool
-    for (let i = tilePool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
-    }
-
-    const tileCount = getStartingTileCount(playerCount);
-    const playerHand = tilePool.splice(0, tileCount);
-
+    
+    // Create the master tile pool
+    const masterTilePool = generateTilePool();
+    
+    // Get the starting tile count based on player count
+    const tilesPerPlayer = getStartingTileCount(playerCount);
+    
+    // Deal tiles to all players
+    const { playerHand, simulatedPlayerHands, remainingPool } = 
+      dealInitialTiles(masterTilePool, playerCount, tilesPerPlayer);
+    
     set({
       status: 'in-progress',
       board: createInitialBoard(),
-      tilePool,
+      tilePool: remainingPool,
       playerHand,
-      message: 'Game started! Build your word grid.',
+      simulatedPlayerHands,
+      message: `Game started with ${playerCount} players! Build your word grid.`,
     });
   },
 
@@ -146,11 +190,32 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       if (state.tilePool.length === 0) {
         return { message: 'No more tiles to peel!' };
       }
-      const newTile = state.tilePool.pop()!;
+      
+      // The human player gets one tile
+      const { drawn: playerTiles, remaining: poolAfterPlayer } = 
+        drawTiles(state.tilePool, 1);
+      
+      let newPool = poolAfterPlayer;
+      let newSimulatedHands = [...state.simulatedPlayerHands];
+      let tilesDrawn = 1; // Count the player's tile
+      
+      // Each simulated player also gets one tile
+      for (let i = 0; i < newSimulatedHands.length; i++) {
+        if (newPool.length > 0) {
+          const { drawn, remaining } = drawTiles(newPool, 1);
+          newSimulatedHands[i] = [...newSimulatedHands[i], ...drawn];
+          newPool = remaining;
+          tilesDrawn++;
+        } else {
+          break; // No more tiles to draw
+        }
+      }
+      
       return {
-        playerHand: [...state.playerHand, newTile],
-        tilePool: [...state.tilePool],
-        message: 'Peeled 1 tile!',
+        playerHand: [...state.playerHand, ...playerTiles],
+        tilePool: newPool,
+        simulatedPlayerHands: newSimulatedHands,
+        message: `Peeled ${tilesDrawn} tiles (${state.simulatedPlayerHands.length} other players also drew)!`,
       };
     });
   },
@@ -160,16 +225,18 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       if (state.tilePool.length < 3) {
         return { message: 'Not enough tiles in the pool to dump.' };
       }
+      
+      // Remove the tile from player's hand
       const newHand = state.playerHand.filter((t) => t.id !== tileToDump.id);
-      const newTiles = state.tilePool.splice(0, 3);
+      
+      // Draw 3 new tiles for the player
+      const { drawn: newTiles, remaining: remainingPool } = 
+        drawTiles(state.tilePool, 3);
+      
       newHand.push(...newTiles);
 
       // Return dumped tile to pool and shuffle
-      const newPool = [...state.tilePool, tileToDump];
-      for (let i = newPool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newPool[i], newPool[j]] = [newPool[j], newPool[i]];
-      }
+      const newPool = shuffle([...remainingPool, tileToDump]);
 
       return {
         playerHand: newHand,
