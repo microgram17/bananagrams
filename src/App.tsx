@@ -31,6 +31,10 @@ function App() {
     moveSelectedCell,
     placeTileByKey,
     handleBackspace,
+    lastAiPeeler,
+    isRottenBanana,
+    checkAutoSkala,
+    resetGame,
   } = useGameStore((state: GameState & GameActions) => ({
     status: state.status,
     board: state.board,
@@ -52,9 +56,14 @@ function App() {
     moveSelectedCell: state.moveSelectedCell,
     placeTileByKey: state.placeTileByKey,
     handleBackspace: state.handleBackspace,
+    lastAiPeeler: state.lastAiPeeler,
+    isRottenBanana: state.isRottenBanana,
+    checkAutoSkala: state.checkAutoSkala,
+    resetGame: state.resetGame,
   }));
 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [aiPeelNotification, setAiPeelNotification] = useState<string | null>(null);
 
   useEffect(() => {
     // Load the word list when the app starts
@@ -94,6 +103,29 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [status, selectedCell, moveSelectedCell, handleBackspace, toggleTypingDirection, placeTileByKey]);
 
+  // Add effect for handling AI peel notifications
+  useEffect(() => {
+    if (lastAiPeeler !== null) {
+      setAiPeelNotification(`Player ${lastAiPeeler + 2} peeled!`);
+      
+      // Clear notification after 3 seconds
+      const timer = setTimeout(() => {
+        setAiPeelNotification(null);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      // Ensure notification is cleared when lastAiPeeler is reset
+      setAiPeelNotification(null);
+    }
+  }, [lastAiPeeler]);
+
+  // Add effect to check for auto-skala when player hand changes
+  useEffect(() => {
+    if (status === 'in-progress') {
+      checkAutoSkala();
+    }
+  }, [playerHand.length, status, checkAutoSkala]);
 
   const moveTileToBoard = (item: DraggedItem, x: number, y: number) => {
     moveTile(item, { x, y });
@@ -137,6 +169,7 @@ function App() {
               <p className="text-gray-600 text-base mt-1">Drag tiles to build your word grid</p>
             </header>
             
+            {/* Game controls */}
             <Controls
               status={status}
               playerCount={playerCount}
@@ -147,6 +180,7 @@ function App() {
               typingDirection={typingDirection}
               tilesInPool={tilePool.length}
               simulatedPlayerTiles={simulatedPlayerHands.map(hand => hand.length)}
+              hideSkalaButton={true}
             />
             
             <PlayerHand
@@ -168,6 +202,24 @@ function App() {
           isOpen={isHelpModalOpen} 
           onClose={() => setIsHelpModalOpen(false)} 
         />
+        
+        {/* Game Over / Lost Notification */}
+        {status === 'lost' && (
+          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md text-center">
+              <h2 className="text-3xl font-bold mb-4 text-red-600">Game Over!</h2>
+              <p className="mb-6 text-gray-800">
+                {message || "An opponent has finished their board and won the game!"}
+              </p>
+              <button
+                onClick={startGame}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              >
+                Play Again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </DndProvider>
   );

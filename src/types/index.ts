@@ -22,7 +22,7 @@ export interface BoardTile extends Tile {
 // The game board is a 2D grid that can hold a tile or be empty
 export type Board = (Tile | null)[][];
 
-export type GameStatus = 'pre-game' | 'in-progress' | 'won';
+export type GameStatus = 'pre-game' | 'in-progress' | 'won' | 'lost';
 
 // Item type for React DnD
 export interface DraggedItem {

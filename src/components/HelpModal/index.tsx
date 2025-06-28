@@ -58,6 +58,25 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-bold text-yellow-700 mb-2">Winning</h3>
               <p>The first player to use all their tiles in a valid crossword grid wins! Click "Check Board" to validate your grid.</p>
             </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-yellow-700 mb-2">Game Mechanics</h3>
+              
+              <div className="ml-4 mb-3">
+                <h4 className="font-bold text-gray-800">Auto-Peel</h4>
+                <p>When you use all your tiles, you'll automatically draw a new tile. All other players will also draw a tile.</p>
+              </div>
+              
+              <div className="ml-4 mb-3">
+                <h4 className="font-bold text-gray-800">Other Players</h4>
+                <p>Simulated players will automatically "peel" when they've used all their tiles. Watch their tile counts - players with fewer tiles are closer to peeling!</p>
+              </div>
+              
+              <div className="ml-4 mb-3">
+                <h4 className="font-bold text-gray-800">Rotten Banana</h4>
+                <p>If you use all your tiles when there are no more tiles in the pool, but your board has errors, you're a "rotten banana" and lose the game!</p>
+              </div>
+            </section>
           </div>
         </div>
       </div>
