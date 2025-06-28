@@ -7,7 +7,7 @@ import { Controls } from "./components/Controls";
 import { useGameStore, GameState, GameActions } from "./store/useGameStore";
 import { DraggedItem, Letter } from "./types";
 import { loadWordList } from "./logic/wordChecker";
-import { HelpModal } from './components/HelpModal';
+import { HelpModal } from "./components/HelpModal";
 
 function App() {
   const {
