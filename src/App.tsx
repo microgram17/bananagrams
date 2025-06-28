@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Board } from "./components/Board";
@@ -7,6 +7,7 @@ import { Controls } from "./components/Controls";
 import { useGameStore, GameState, GameActions } from "./store/useGameStore";
 import { DraggedItem, Letter } from "./types";
 import { loadWordList } from "./logic/wordChecker";
+import { HelpModal } from './components/HelpModal';
 
 function App() {
   const {
@@ -48,6 +49,8 @@ function App() {
     placeTileByKey: state.placeTileByKey,
     handleBackspace: state.handleBackspace,
   }));
+
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   useEffect(() => {
     // Load the word list when the app starts
@@ -99,6 +102,17 @@ function App() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="App min-h-screen font-sans p-1 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-50">
+        {/* Help Button */}
+        <div className="fixed top-4 right-4 z-10">
+          <button
+            onClick={() => setIsHelpModalOpen(true)}
+            className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold rounded-full w-10 h-10 flex items-center justify-center shadow-md border-2 border-yellow-300 transition-all hover:scale-110"
+            aria-label="Help"
+          >
+            <span className="text-xl">?</span>
+          </button>
+        </div>
+        
         <main className="grid grid-cols-1 lg:grid-cols-5 gap-2 mt-6" style={{ marginLeft: '3%', marginRight: '3%' }}>
           <div className="lg:col-span-3 flex flex-col items-start pl-4">
             <div className="board-container">
@@ -142,6 +156,12 @@ function App() {
             </div>
           </aside>
         </main>
+        
+        {/* Help Modal */}
+        <HelpModal 
+          isOpen={isHelpModalOpen} 
+          onClose={() => setIsHelpModalOpen(false)} 
+        />
       </div>
     </DndProvider>
   );
