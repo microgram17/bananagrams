@@ -163,7 +163,11 @@ function App() {
 
           <aside className="lg:col-span-2 flex flex-col gap-3">
             <header className="mb-3">
-              <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700">
+              <h1 
+                className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-yellow-700 cursor-pointer hover:scale-105 transition-transform"
+                onClick={resetGame}
+                title="Click to reset game"
+              >
                 Bananagrams
               </h1>
               <p className="text-gray-600 text-base mt-1">Drag tiles to build your word grid</p>
