@@ -8,3 +8,6 @@ services:
     environment:
       # Enables hot-reloading in some environments
       - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./:/app
+      - /app/node_modules
