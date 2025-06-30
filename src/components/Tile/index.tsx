@@ -1,14 +1,32 @@
+/**
+ * Tile component for the Bananagrams game.
+ *
+ * Represents a single letter tile that can be dragged and dropped.
+ * Used in both the player's hand and on the game board.
+ */
 import React from 'react';
 import { useDrag } from 'react-dnd';
 import { Tile as TileType, Position } from '../../types';
 
+/**
+ * Props for the Tile component
+ * @property tile - The tile data (letter and ID)
+ * @property source - Where the tile is located (player's hand or board position)
+ * @property onClick - Optional callback for when the tile is clicked
+ */
 interface TileProps {
   tile: TileType;
   source: 'hand' | Position; // Where the tile is coming from
   onClick?: (tile: TileType) => void;
 }
 
+/**
+ * Renders a single letter tile.
+ * Makes the tile draggable using react-dnd.
+ * Applies visual effects for dragging and hovering.
+ */
 export const Tile: React.FC<TileProps> = ({ tile, source, onClick }) => {
+  // Set up drag source using react-dnd
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: 'tile',
@@ -20,6 +38,7 @@ export const Tile: React.FC<TileProps> = ({ tile, source, onClick }) => {
     [tile, source]
   );
 
+  // Use pointer cursor if clickable, grab cursor if draggable
   const cursorStyle = onClick ? 'pointer' : 'grab';
 
   // Apply different styles when dragging

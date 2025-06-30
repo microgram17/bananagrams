@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import {
   Board,
   Tile,
-  GameStatus, // Import this, don't redefine it
+  GameStatus, 
   DraggedItem,
   Position,
   Letter,
@@ -10,16 +10,28 @@ import {
 import { BOARD_SIZE, getStartingTileCount } from '../gameConfig';
 import { extractWordsFromBoard, wordList } from '../logic/wordChecker';
 
-// Helper function to create an empty board
+/**
+ * Creates an empty game board filled with null values.
+ * The board is a 2D grid where each cell can contain a tile or null.
+ * 
+ * @returns A new empty board of size BOARD_SIZE × BOARD_SIZE
+ */
 const createInitialBoard = (): Board =>
   Array(BOARD_SIZE)
     .fill(null)
     .map(() => Array(BOARD_SIZE).fill(null));
 
+// Letter distribution for Swedish Bananagrams
+// Each letter appears a specific number of times in the game
 // prettier-ignore
 const TILE_DISTRIBUTION: { [key in Letter]: number } = { 'A': 13, 'B': 3, 'C': 3, 'D': 5, 'E': 12, 'F': 2, 'G': 4, 'H': 2, 'I': 10, 'J': 1, 'K': 3, 'L': 5, 'M': 3, 'N': 8, 'O': 5, 'P': 3, 'R': 7, 'S': 8, 'T': 9, 'U': 4, 'V': 2, 'X': 1, 'Y': 2, 'Ä': 2, 'Ö': 2, 'Å': 2 };
 
-// Helper to create the initial pool of tiles
+/**
+ * Creates the initial pool of tiles based on the TILE_DISTRIBUTION.
+ * Each tile is assigned a unique ID.
+ * 
+ * @returns An array of tiles representing the initial pool
+ */
 const createTilePool = (): Tile[] => {
   let id = 0;
   return Object.entries(TILE_DISTRIBUTION).flatMap(([letter, count]) =>
@@ -29,12 +41,18 @@ const createTilePool = (): Tile[] => {
   );
 };
 
-// --- NEW HELPER FUNCTIONS FOR SIMULATED PLAYERS ---
+// --- HELPER FUNCTIONS FOR SIMULATED PLAYERS ---
 
-// Generate a master tile pool for the entire game
+/**
+ * Generates and shuffles a master tile pool for the entire game.
+ * This creates all tiles needed according to the TILE_DISTRIBUTION
+ * and randomizes their order.
+ * 
+ * @returns A shuffled array of all game tiles
+ */
 const generateTilePool = () => {
   const tilePool = createTilePool();
-  // Shuffle the pool
+  // Fisher-Yates shuffle algorithm
   for (let i = tilePool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
@@ -42,23 +60,46 @@ const generateTilePool = () => {
   return tilePool;
 };
 
-// Deal initial tiles to players
+/**
+ * Deals initial tiles to all players (human and AI).
+ * 
+ * @param masterTilePool The full pool of tiles to deal from
+ * @param playerCount Total number of players including human player
+ * @param tilesPerPlayer Number of tiles each player should receive
+ * @returns Object containing the player's hand, simulated hands, and remaining tiles
+ */
 const dealInitialTiles = (masterTilePool: Tile[], playerCount: number, tilesPerPlayer: number) => {
+  // Deal tiles to the human player first
   const playerHand = masterTilePool.splice(0, tilesPerPlayer);
+  
+  // Deal tiles to each simulated player
   const simulatedPlayerHands = Array.from({ length: playerCount - 1 }, () =>
     masterTilePool.splice(0, tilesPerPlayer)
   );
+  
   return { playerHand, simulatedPlayerHands, remainingPool: masterTilePool };
 };
 
-// Draw a specific number of tiles from the pool
+/**
+ * Draws a specific number of tiles from the pool.
+ * 
+ * @param tilePool The pool to draw tiles from
+ * @param count Number of tiles to draw
+ * @returns Object containing drawn tiles and the remaining pool
+ */
 const drawTiles = (tilePool: Tile[], count: number) => {
   const drawnTiles = tilePool.slice(0, count);
   const remainingTiles = tilePool.slice(count);
   return { drawn: drawnTiles, remaining: remainingTiles };
 };
 
-// Shuffle the tiles in the pool
+/**
+ * Shuffles an array of tiles using the Fisher-Yates algorithm.
+ * Modifies the array in place and also returns it.
+ * 
+ * @param tilePool Array of tiles to shuffle
+ * @returns The shuffled array (same reference as input)
+ */
 const shuffle = (tilePool: Tile[]) => {
   for (let i = tilePool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -67,48 +108,67 @@ const shuffle = (tilePool: Tile[]) => {
   return tilePool;
 };
 
+/**
+ * Defines the shape of the game state.
+ * Contains all data related to the current game.
+ */
 export interface GameState {
-  status: GameStatus;
-  board: Board;
-  playerHand: Tile[];
-  tilePool: Tile[];
-  message: string;
-  playerCount: number;
-  selectedCell: Position | null;
-  typingDirection: 'horizontal' | 'vertical';
-  // Add simulated players
-  simulatedPlayerHands: Tile[][];
-  aiTimers: number[];
-  aiNextTileUseTime: number[]; // Changed from aiNextPeelTimes
-  lastAiPeeler: number | null;
-  isRottenBanana: boolean;
+  status: GameStatus;               // Current game status (pre-game, in-progress, etc.)
+  board: Board;                     // The game board
+  playerHand: Tile[];               // Tiles in the player's hand
+  tilePool: Tile[];                 // Remaining tiles in the pool
+  message: string;                  // Message to display to the player
+  playerCount: number;              // Total number of players (including AIs)
+  selectedCell: Position | null;    // Currently selected cell for keyboard control
+  typingDirection: 'horizontal' | 'vertical'; // Direction for keyboard tile placement
+  simulatedPlayerHands: Tile[][];   // Tiles for each simulated player
+  aiTimers: number[];               // Timer IDs for AI move scheduling
+  aiNextTileUseTime: number[];      // Timestamps for when each AI will next use a tile
+  lastAiPeeler: number | null;      // Index of the last AI that triggered a peel
+  isRottenBanana: boolean;          // Whether the player has invalid words with no tiles left
 }
 
+/**
+ * Defines all actions that can modify the game state.
+ * These functions provide the game's interactivity.
+ */
 export interface GameActions {
   setPlayerCount: (count: number) => void;
   startGame: () => void;
   moveTile: (item: DraggedItem, destination: Position | 'hand') => void;
-  skala: () => void;
-  dumpa: (tileToDump: Tile) => void;
+  skala: () => void;                // "Peel" action - draw a new tile
+  dumpa: (tileToDump: Tile) => void; // "Dump" action - exchange 1 tile for 3
   checkWinCondition: () => Promise<void>;
-  // New actions for keyboard controls
+  // Keyboard control actions
   setSelectedCell: (position: Position | null) => void;
   toggleTypingDirection: () => void;
   moveSelectedCell: (direction: 'up' | 'down' | 'left' | 'right') => void;
   placeTileByKey: (letter: Letter) => void;
   handleBackspace: () => void;
+  // AI-related actions
   startAiTimers: () => void;
-  handleAiUseTile: (aiIndex: number) => void; // Changed from handleAiPeel
+  handleAiUseTile: (aiIndex: number) => void;
   checkAutoSkala: () => void;
-  resetGame: () => void; // <-- New action for resetting the game
+  resetGame: () => void;
 }
 
-// Add constants for AI timing
-const BASE_AI_TIME_PER_TILE = 2000; // 2 seconds per tile base time
-const AI_RANDOM_FACTOR_MAX = 2500; // up to 2.5 seconds of randomness
-const LAST_TILE_FACTOR = 2; // Double time for the last tile
+// Constants for AI timing simulation
+const BASE_AI_TIME_PER_TILE = 2000; // Base time in ms per tile for AI "thinking"
+const AI_RANDOM_FACTOR_MAX = 2500;  // Maximum random time variation to add
+const LAST_TILE_FACTOR = 2;         // Multiplier for the last tile (makes AI slower)
 
+/**
+ * The main game store using Zustand for state management.
+ * Combines game state and actions into a single store.
+ * 
+ * This is the central piece of the application that manages:
+ * - Game state (board, tiles, player hands)
+ * - Game progression (starting, ending, winning conditions)
+ * - Player actions (moving tiles, peeling, dumping)
+ * - AI player simulation
+ */
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
+  // Initial state
   status: 'pre-game',
   board: createInitialBoard(),
   playerHand: [],
@@ -117,15 +177,25 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   playerCount: 1,
   selectedCell: null,
   typingDirection: 'horizontal',
-  // Initialize simulated player hands
   simulatedPlayerHands: [],
   aiTimers: [],
   aiNextTileUseTime: [],
   lastAiPeeler: null,
   isRottenBanana: false,
 
+  /**
+   * Updates the number of players for the game.
+   * @param count - The new player count
+   */
   setPlayerCount: (count) => set({ playerCount: count }),
 
+  /**
+   * Initializes and starts a new game.
+   * - Creates and shuffles the tile pool
+   * - Deals tiles to all players
+   * - Sets the game status to in-progress
+   * - Starts AI timers if there are simulated players
+   */
   startGame: () => {
     const { playerCount } = get();
     
@@ -158,6 +228,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
   },
   
+  /**
+   * Initializes timers for AI players to simulate their moves.
+   * Each AI uses tiles at random intervals based on their hand size.
+   */
   startAiTimers: () => {
     set(state => {
       const { simulatedPlayerHands } = state;
@@ -193,6 +267,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
   
+  /**
+   * Handles an AI player using a tile.
+   * When an AI uses all its tiles, it triggers a "peel" for everyone.
+   * If there are no tiles left in the pool and an AI uses its last tile,
+   * the AI wins and the player loses.
+   * 
+   * @param aiIndex - Index of the AI player
+   */
   handleAiUseTile: (aiIndex: number) => {
     set(state => {
       const { simulatedPlayerHands, tilePool } = state;
@@ -276,6 +358,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
   
+  /**
+   * Automatically triggers a "peel" when the player has used all their tiles.
+   * Also checks for a potential win if the tile pool is empty.
+   */
   checkAutoSkala: () => {
     const { playerHand, tilePool } = get();
     
@@ -288,6 +374,13 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
   },
   
+  /**
+   * Moves a tile from one location to another (hand to board, board to hand, or board to board).
+   * This is the core mechanic for building the word grid.
+   * 
+   * @param item - The tile being moved and its source location
+   * @param destination - Where the tile should be placed
+   */
   moveTile: (item, destination) => {
     set((state) => {
       const { tile: draggedTile, source } = item;
@@ -345,6 +438,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     setTimeout(() => get().checkAutoSkala(), 50);
   },
 
+  /**
+   * The "Skala" (Peel) action - draws one tile for each player from the pool.
+   * In Bananagrams, players call "Peel" when they've used all their tiles,
+   * and everyone takes a new tile from the bunch.
+   */
   skala: () => {
     set((state) => {
       if (state.tilePool.length === 0) {
@@ -389,6 +487,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
+  /**
+   * The "Dumpa" (Dump) action - exchanges one tile for three new tiles.
+   * This is useful when a player has a difficult letter they can't use.
+   * 
+   * @param tileToDump - The tile to exchange
+   */
   dumpa: (tileToDump) => {
     set((state) => {
       if (state.tilePool.length < 3) {
@@ -415,12 +519,22 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
-  // --- NEW ACTIONS FOR KEYBOARD CONTROLS ---
+  // --- KEYBOARD CONTROL ACTIONS ---
 
+  /**
+   * Sets the currently selected cell for keyboard input.
+   * This allows players to place tiles using keyboard controls.
+   * 
+   * @param position - The board position to select, or null to deselect
+   */
   setSelectedCell: (position) => {
     set({ selectedCell: position });
   },
 
+  /**
+   * Toggles the direction for placing tiles when using keyboard controls.
+   * Switches between horizontal and vertical placement.
+   */
   toggleTypingDirection: () => {
     set((state) => ({
       typingDirection:
@@ -431,6 +545,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }));
   },
 
+  /**
+   * Moves the selected cell in the specified direction.
+   * Used for keyboard navigation of the board.
+   * 
+   * @param direction - The direction to move (up, down, left, right)
+   */
   moveSelectedCell: (direction) => {
     set((state) => {
       if (!state.selectedCell) return {};
@@ -446,11 +566,19 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
+  /**
+   * Places a tile on the board using keyboard input.
+   * Finds a tile with the specified letter in the player's hand
+   * and places it at the selected cell.
+   * 
+   * @param letter - The letter to place
+   */
   placeTileByKey: (letter) => {
     set((state) => {
       const { selectedCell, playerHand, board, typingDirection } = state;
       if (!selectedCell) return {};
 
+      // Find a tile with the matching letter in the player's hand
       const tileIndex = playerHand.findIndex(
         (t) => t.letter.toUpperCase() === letter.toUpperCase()
       );
@@ -466,13 +594,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       const newBoard = board.map((row) => [...row]);
       const { x, y } = selectedCell;
 
+      // If there's already a tile at the selected position, return it to the hand
       const tileAtDestination = newBoard[y][x];
       if (tileAtDestination) {
         newPlayerHand.push(tileAtDestination);
       }
 
+      // Place the new tile
       newBoard[y][x] = tileToPlace;
 
+      // Automatically move selection to the next cell based on typing direction
       let nextSelectedCell = { ...selectedCell };
       if (typingDirection === 'horizontal') {
         nextSelectedCell.x = Math.min(BOARD_SIZE - 1, nextSelectedCell.x + 1);
@@ -489,6 +620,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
+  /**
+   * Handles backspace key press when using keyboard controls.
+   * Removes a tile from the selected cell and returns it to the player's hand.
+   * If the cell is empty, moves the selection back.
+   */
   handleBackspace: () => {
     set((state) => {
       const { selectedCell, board, playerHand, typingDirection } = state;
@@ -536,6 +672,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
+  /**
+   * Checks if the player has won the game.
+   * A valid win requires:
+   * 1. All tiles in the player's hand are used
+   * 2. All words on the board are valid
+   * 3. All tiles on the board are connected
+   * 
+   * If there are invalid words and no tiles left in the pool,
+   * the player is a "rotten banana" and loses.
+   */
   checkWinCondition: async () => {
     const { board, playerHand, tilePool } = get();
 
@@ -547,6 +693,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       return;
     }
 
+    // Collect all tiles on the board with their positions
     const tilesOnBoard: { tile: Tile; pos: Position }[] = [];
     board.forEach((row, y) =>
       row.forEach((tile, x) => {
@@ -565,6 +712,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         throw new Error('Word list is empty. Dictionary not loaded.');
       }
 
+      // Extract and validate all words on the board
       const words = extractWordsFromBoard(board);
       const invalidWords = words.filter(word => !wordList.has(word.toLowerCase()));
 
@@ -587,7 +735,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         return;
       }
 
-      // Check for connectivity using BFS
+      // Check for connectivity using Breadth-First Search (BFS)
       const toVisit = [tilesOnBoard[0].pos];
       const visited = new Set<string>([`${toVisit[0].x},${toVisit[0].y}`]);
       const tilePositions = new Set(tilesOnBoard.map(t => `${t.pos.x},${t.pos.y}`));
@@ -595,6 +743,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
       while (head < toVisit.length) {
         const { x, y } = toVisit[head++];
+        // Check all four adjacent cells
         [{ x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 }].forEach(n => {
           const key = `${n.x},${n.y}`;
           if (tilePositions.has(key) && !visited.has(key)) {
@@ -619,6 +768,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
         return;
       }
 
+      // All conditions met - player wins!
       set({ status: 'won', message: 'Bananagrams! You win! Congratulations!' });
     } catch (e) {
       const error = e as Error; // Explicitly cast `e` to `Error`
@@ -627,6 +777,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
   },
 
+  /**
+   * Resets the game to its initial state.
+   * Clears the board, hands, and timers.
+   */
   resetGame: () => {
     // Clear any existing AI timers
     const { aiTimers } = get();

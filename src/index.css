@@ -1,30 +1,53 @@
+/**
+ * Main application styles and animations.
+ * 
+ * Includes:
+ * - Tailwind CSS setup
+ * - Custom animations for tile movements
+ * - Visual effects for gameplay feedback
+ */
+
+/* Import Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Add this animation layer */
+/* 
+ * Custom animation components layer
+ * These animations provide visual feedback during gameplay
+ */
 @layer components {
+  /* Animation for tiles appearing on the board */
   .tile-pop-in {
     animation: pop-in 0.2s ease-out forwards;
   }
 
+  /* Animation for tiles that need attention */
   .tile-bounce {
     animation: bounce 0.5s ease-in-out;
   }
 
+  /* Subtle pulsing shadow effect */
   .pulse-shadow {
     animation: pulse-shadow 2s infinite;
   }
 
+  /* More prominent pulsing shadow for important elements */
   .strong-pulse-shadow {
     animation: strong-pulse-shadow 1.5s infinite;
   }
 
+  /* Animation for tiles being removed from the board */
   .tile-remove {
     animation: remove-out 0.3s ease-out forwards;
   }
 }
 
+/* 
+ * Animation keyframes
+ */
+
+/* Tile appearance animation with slight bounce */
 @keyframes pop-in {
   0% {
     transform: scale(0.7);
@@ -39,6 +62,7 @@
   }
 }
 
+/* Simple bounce animation for emphasis */
 @keyframes bounce {
   0%,
   100% {
@@ -49,6 +73,7 @@
   }
 }
 
+/* Yellow pulsing shadow for highlighting */
 @keyframes pulse-shadow {
   0%,
   100% {
@@ -59,6 +84,7 @@
   }
 }
 
+/* Orange pulsing shadow for important elements */
 @keyframes strong-pulse-shadow {
   0%,
   100% {
@@ -69,6 +95,7 @@
   }
 }
 
+/* Tile removal animation with fade and rotation */
 @keyframes remove-out {
   0% {
     transform: scale(1);

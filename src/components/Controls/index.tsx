@@ -1,6 +1,28 @@
+/**
+ * Controls component for the Bananagrams game.
+ * 
+ * Provides the game control interface including:
+ * - Player count selection before the game starts
+ * - Game action buttons during play (Skala, Check Board)
+ * - Game status information (typing direction, tiles in pool, AI player counts)
+ */
 import React from 'react';
 import { GameStatus } from '../../types';
 
+/**
+ * Props for the Controls component
+ * 
+ * @property status - Current game status
+ * @property playerCount - Number of players (including AI)
+ * @property typingDirection - Current direction for keyboard tile placement
+ * @property tilesInPool - Number of tiles remaining in the pool
+ * @property simulatedPlayerTiles - Array of tile counts for each AI player
+ * @property onPlayerCountChange - Callback for changing player count
+ * @property onStart - Callback for starting the game
+ * @property onPeel - Callback for "Skala" (peel) action
+ * @property onCheck - Callback for checking the board
+ * @property hideSkalaButton - Whether to hide the Skala button
+ */
 interface ControlsProps {
   status: GameStatus;
   playerCount: number;
@@ -14,6 +36,10 @@ interface ControlsProps {
   hideSkalaButton?: boolean;
 }
 
+/**
+ * Renders the game control panel.
+ * Shows different controls based on game state (pre-game vs in-progress).
+ */
 export const Controls: React.FC<ControlsProps> = ({
   status,
   playerCount,
@@ -26,6 +52,7 @@ export const Controls: React.FC<ControlsProps> = ({
   onCheck,
   hideSkalaButton = false,
 }) => {
+  // Determine if we're in the pre-game setup state
   const isPreGame = status === 'pre-game';
 
   return (
@@ -38,6 +65,7 @@ export const Controls: React.FC<ControlsProps> = ({
       </h2>
 
       {isPreGame ? (
+        // Pre-game controls: player count selection and start button
         <>
           <div>
             <label htmlFor="playerCount" className="block text-sm font-medium text-gray-600 mb-1">
@@ -67,6 +95,7 @@ export const Controls: React.FC<ControlsProps> = ({
           </button>
         </>
       ) : (
+        // In-game controls: action buttons and game status
         <>
           <div className="grid grid-cols-2 gap-3">
             {!hideSkalaButton && (
@@ -91,6 +120,7 @@ export const Controls: React.FC<ControlsProps> = ({
             </button>
           </div>
           
+          {/* Typing direction indicator */}
           <div className="text-center text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
             <span className="font-medium">Typing Direction:</span> 
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-mono">{typingDirection.toUpperCase()}</span>
@@ -99,17 +129,20 @@ export const Controls: React.FC<ControlsProps> = ({
         </>
       )}
 
+      {/* Game status information (only shown during gameplay) */}
       {!isPreGame && (
         <div className="text-center text-sm bg-gray-50 p-3 rounded-md border border-gray-100">
           <div className="mb-2">
             <span className="font-medium">Tiles in Pool:</span> 
             <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-md font-mono">{tilesInPool}</span>
           </div>
+          {/* AI player tile counts */}
           {simulatedPlayerTiles.length > 0 && (
             <div className="text-xs text-gray-600 flex flex-wrap justify-center gap-2">
               {simulatedPlayerTiles.map((count, index) => (
                 <div key={index} className="inline-block bg-gray-100 px-2 py-1 rounded">
                   <span className="font-medium text-gray-700">Player {index + 2}:</span>{' '}
+                  {/* Highlight players with few tiles left as they are close to peeling */}
                   <span className={`font-mono ${count <= 5 ? 'text-red-600 font-bold' : ''}`}>{count}</span>
                 </div>
               ))}

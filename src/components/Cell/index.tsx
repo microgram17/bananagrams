@@ -1,8 +1,23 @@
+/**
+ * Cell component for the Bananagrams game.
+ * 
+ * Represents a single cell on the game board where tiles can be placed.
+ * Handles drag and drop interactions and visual feedback for player actions.
+ */
 import React from 'react';
 import { useDrop } from 'react-dnd';
 import { Tile as TileComponent } from '../Tile';
 import { Tile, DraggedItem, Position } from '../../types';
 
+/**
+ * Props for the Cell component
+ * @property x - X coordinate of the cell on the board
+ * @property y - Y Y coordinate of the cell on the board
+ * @property tile - The tile placed on this cell, or null if empty
+ * @property onDropTile - Callback for when a tile is dropped on this cell
+ * @property isSelected - Whether this cell is currently selected (for keyboard input)
+ * @property onClick - Callback for when the cell is clicked
+ */
 interface CellProps {
   x: number;
   y: number;
@@ -12,7 +27,13 @@ interface CellProps {
   onClick: () => void;
 }
 
+/**
+ * Renders a single cell of the game board.
+ * Uses react-dnd for drag and drop functionality.
+ * Provides visual feedback for hover, selection, and dropping tiles.
+ */
 export const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile, isSelected, onClick }) => {
+  // Set up drop target using react-dnd
   const [{ isOver, canDrop }, drop] = useDrop(() => ({
     accept: 'tile',
     drop: (item: DraggedItem) => onDropTile(item, x, y),
@@ -22,6 +43,12 @@ export const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile, isSelected, 
     }),
   }));
 
+  /**
+   * Determines the background color of the cell based on its state
+   * - Green when a tile is being dragged over it
+   * - Blue when it's the selected cell
+   * - Default light yellow otherwise
+   */
   const getBackgroundColor = () => {
     if (isOver && canDrop) return 'bg-green-200 bg-opacity-80';
     if (isSelected) return 'bg-blue-100 bg-opacity-70';
@@ -48,11 +75,13 @@ export const Cell: React.FC<CellProps> = ({ x, y, tile, onDropTile, isSelected, 
         outlineOffset: '1px'
       } : {}}
     >
+      {/* Render the tile if this cell contains one */}
       {tile && (
         <div className={`${tile.isRemoving ? "tile-remove" : "tile-pop-in"} ${isSelected ? "z-10" : ""}`}>
           <TileComponent tile={tile} source={{ x, y }} />
         </div>
       )}
+      {/* Add a highlight border for the selected cell */}
       {isSelected && tile && (
         <div 
           className="absolute inset-0 pointer-events-none z-20" 

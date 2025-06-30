@@ -1,8 +1,18 @@
+/**
+ * Game configuration constants and utilities.
+ * 
+ * Contains central game settings like board size and starting tile counts
+ * that determine the core rules of the game.
+ */
+
+// Size of the game board (25x25 grid)
 export const BOARD_SIZE = 25;
 
 /**
  * Determines the number of starting tiles based on the number of players.
- * According to official Bananagrams rules.
+ * According to official Bananagrams rules, players get fewer tiles as
+ * the player count increases to keep game length reasonable.
+ * 
  * @param playerCount The number of players in the game.
  * @returns The number of tiles each player starts with.
  */

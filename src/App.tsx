@@ -1,3 +1,13 @@
+/**
+ * Main application component for the Bananagrams game.
+ * 
+ * This component:
+ * - Orchestrates the entire game flow
+ * - Sets up drag and drop functionality
+ * - Handles keyboard controls for gameplay
+ * - Manages modals and notifications
+ * - Coordinates between the game store and UI components
+ */
 import React, { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -10,6 +20,7 @@ import { loadWordList } from "./logic/wordChecker";
 import { HelpModal } from "./components/HelpModal";
 
 function App() {
+  // Extract all needed state and actions from the game store
   const {
     status,
     board,
@@ -62,16 +73,28 @@ function App() {
     resetGame: state.resetGame,
   }));
 
+  // Local state for UI elements
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [aiPeelNotification, setAiPeelNotification] = useState<string | null>(null);
 
+  /**
+   * Effect to load the word dictionary when the app starts
+   * This is crucial for validating words during gameplay
+   */
   useEffect(() => {
-    // Load the word list when the app starts
     loadWordList().catch(() => {
       console.error("Failed to load word list.");
     });
   }, []);
 
+  /**
+   * Effect to handle keyboard inputs for game controls
+   * Allows players to use keyboard for:
+   * - Arrow keys: Navigate the board
+   * - Tab: Toggle typing direction
+   * - Letter keys: Place tiles from hand
+   * - Backspace: Remove tiles
+   */
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (status !== 'in-progress') return;
@@ -103,7 +126,10 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [status, selectedCell, moveSelectedCell, handleBackspace, toggleTypingDirection, placeTileByKey]);
 
-  // Add effect for handling AI peel notifications
+  /**
+   * Effect to display notifications when AI players peel tiles
+   * Shows a temporary notification and clears it after 3 seconds
+   */
   useEffect(() => {
     if (lastAiPeeler !== null) {
       setAiPeelNotification(`Player ${lastAiPeeler + 2} peeled!`);
@@ -120,17 +146,30 @@ function App() {
     }
   }, [lastAiPeeler]);
 
-  // Add effect to check for auto-skala when player hand changes
+  /**
+   * Effect to automatically check if player should "skala" (peel)
+   * when they use all their tiles
+   */
   useEffect(() => {
     if (status === 'in-progress') {
       checkAutoSkala();
     }
   }, [playerHand.length, status, checkAutoSkala]);
 
+  /**
+   * Handles moving a tile from one location to another on the board
+   * @param item - The tile being moved and its source
+   * @param x - Destination x coordinate
+   * @param y - Destination y coordinate
+   */
   const moveTileToBoard = (item: DraggedItem, x: number, y: number) => {
     moveTile(item, { x, y });
   };
 
+  /**
+   * Handles moving a tile from the board back to the player's hand
+   * @param item - The tile being moved and its source
+   */
   const moveTileToHand = (item: DraggedItem) => {
     moveTile(item, "hand");
   };
@@ -149,7 +188,9 @@ function App() {
           </button>
         </div>
         
+        {/* Main game layout - grid with board on left, controls on right */}
         <main className="grid grid-cols-1 lg:grid-cols-5 gap-2 mt-6" style={{ marginLeft: '3%', marginRight: '3%' }}>
+          {/* Game board area */}
           <div className="lg:col-span-3 flex flex-col items-start pl-4">
             <div className="board-container">
               <Board
@@ -161,6 +202,7 @@ function App() {
             </div>
           </div>
 
+          {/* Sidebar with controls and player hand */}
           <aside className="lg:col-span-2 flex flex-col gap-3">
             <header className="mb-3">
               <h1 
@@ -173,7 +215,7 @@ function App() {
               <p className="text-gray-600 text-base mt-1">Drag tiles to build your word grid</p>
             </header>
             
-            {/* Game controls */}
+            {/* Game controls component */}
             <Controls
               status={status}
               playerCount={playerCount}
@@ -187,12 +229,14 @@ function App() {
               hideSkalaButton={true}
             />
             
+            {/* Player's hand of tiles */}
             <PlayerHand
               tiles={playerHand}
               onDropTile={moveTileToHand}
               onTileClick={dumpa}
             />
             
+            {/* Game message display */}
             <div className="bg-white bg-opacity-80 rounded-lg p-3 shadow-md backdrop-blur-sm border-l-4 border-yellow-400">
               <p className="message font-medium text-gray-700">
                 {message}
@@ -201,7 +245,7 @@ function App() {
           </aside>
         </main>
         
-        {/* Help Modal */}
+        {/* Help Modal - displays game rules */}
         <HelpModal 
           isOpen={isHelpModalOpen} 
           onClose={() => setIsHelpModalOpen(false)} 
