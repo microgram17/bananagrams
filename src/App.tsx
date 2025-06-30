@@ -137,7 +137,7 @@ function App() {
       // Clear notification after 3 seconds
       const timer = setTimeout(() => {
         setAiPeelNotification(null);
-      }, 3000);
+      }, 1500);
       
       return () => clearTimeout(timer);
     } else {
