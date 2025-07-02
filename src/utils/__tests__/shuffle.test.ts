@@ -1,4 +1,4 @@
-import { shuffle } from './shuffle';
+import { shuffle } from '../shuffle';
 
 describe('shuffle utility', () => {
   describe('with number arrays', () => {
