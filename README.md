@@ -83,6 +83,58 @@ To stop the running containers, press `Ctrl+C` in the terminal, and then run:
 ```bash
 docker-compose down
 ```
+## Docker Commands
+
+### Development
+
+```bash
+# Start development environment
+docker-compose up
+
+# Rebuild and start (after dependency changes)
+docker-compose up --build
+
+# Run in background
+docker-compose up -d
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f app
+```
+
+## Testing
+
+```bash
+# Run tests once
+docker-compose run --rm test
+
+# Run tests in watch mode
+docker-compose run --rm test npm run test:watch
+
+# Run tests with coverage
+docker-compose run --rm test npm run test:coverage
+
+# Run specific tests
+docker-compose run --rm test npm test -- -t "search pattern"
+
+# Enter test container for interactive commands
+docker-compose run --rm test sh
+```
+
+## Production
+
+```bash
+# Build production image
+docker build -t bananagrams-prod -f Dockerfile.prod .
+
+# Run production container
+docker run -p 80:80 bananagrams-prod
+
+# Build and run with docker-compose (create docker-compose.prod.yml first)
+docker-compose -f docker-compose.prod.yml up --build
+```
 
 ## Gameplay
 
