@@ -6,8 +6,18 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Enables hot-reloading in some environments
       - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./:/app
       - /app/node_modules
+    command: npm run start-watch
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    # Default command from Dockerfile.test is npm test
+    
