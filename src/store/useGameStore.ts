@@ -9,6 +9,8 @@ import {
 } from '../types';
 import { BOARD_SIZE, getStartingTileCount } from '../gameConfig';
 import { extractWordsFromBoard, wordList } from '../logic/wordChecker';
+import { generateTilePool, drawTiles, dealInitialTiles } from '../logic/tilePool';
+import { shuffle } from '../utils/shuffle'; // Add this import
 
 /**
  * Creates an empty game board filled with null values.
@@ -21,92 +23,10 @@ const createInitialBoard = (): Board =>
     .fill(null)
     .map(() => Array(BOARD_SIZE).fill(null));
 
-// Letter distribution for Swedish Bananagrams
-// Each letter appears a specific number of times in the game
-// prettier-ignore
-const TILE_DISTRIBUTION: { [key in Letter]: number } = { 'A': 13, 'B': 3, 'C': 3, 'D': 5, 'E': 12, 'F': 2, 'G': 4, 'H': 2, 'I': 10, 'J': 1, 'K': 3, 'L': 5, 'M': 3, 'N': 8, 'O': 5, 'P': 3, 'R': 7, 'S': 8, 'T': 9, 'U': 4, 'V': 2, 'X': 1, 'Y': 2, 'Ä': 2, 'Ö': 2, 'Å': 2 };
-
-/**
- * Creates the initial pool of tiles based on the TILE_DISTRIBUTION.
- * Each tile is assigned a unique ID.
- * 
- * @returns An array of tiles representing the initial pool
- */
-const createTilePool = (): Tile[] => {
-  let id = 0;
-  return Object.entries(TILE_DISTRIBUTION).flatMap(([letter, count]) =>
-    Array(count)
-      .fill(null)
-      .map(() => ({ id: `tile-${id++}`, letter: letter as Letter }))
-  );
-};
-
-// --- HELPER FUNCTIONS FOR SIMULATED PLAYERS ---
-
-/**
- * Generates and shuffles a master tile pool for the entire game.
- * This creates all tiles needed according to the TILE_DISTRIBUTION
- * and randomizes their order.
- * 
- * @returns A shuffled array of all game tiles
- */
-const generateTilePool = () => {
-  const tilePool = createTilePool();
-  // Fisher-Yates shuffle algorithm
-  for (let i = tilePool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
-  }
-  return tilePool;
-};
-
-/**
- * Deals initial tiles to all players (human and AI).
- * 
- * @param masterTilePool The full pool of tiles to deal from
- * @param playerCount Total number of players including human player
- * @param tilesPerPlayer Number of tiles each player should receive
- * @returns Object containing the player's hand, simulated hands, and remaining tiles
- */
-const dealInitialTiles = (masterTilePool: Tile[], playerCount: number, tilesPerPlayer: number) => {
-  // Deal tiles to the human player first
-  const playerHand = masterTilePool.splice(0, tilesPerPlayer);
-  
-  // Deal tiles to each simulated player
-  const simulatedPlayerHands = Array.from({ length: playerCount - 1 }, () =>
-    masterTilePool.splice(0, tilesPerPlayer)
-  );
-  
-  return { playerHand, simulatedPlayerHands, remainingPool: masterTilePool };
-};
-
-/**
- * Draws a specific number of tiles from the pool.
- * 
- * @param tilePool The pool to draw tiles from
- * @param count Number of tiles to draw
- * @returns Object containing drawn tiles and the remaining pool
- */
-const drawTiles = (tilePool: Tile[], count: number) => {
-  const drawnTiles = tilePool.slice(0, count);
-  const remainingTiles = tilePool.slice(count);
-  return { drawn: drawnTiles, remaining: remainingTiles };
-};
-
-/**
- * Shuffles an array of tiles using the Fisher-Yates algorithm.
- * Modifies the array in place and also returns it.
- * 
- * @param tilePool Array of tiles to shuffle
- * @returns The shuffled array (same reference as input)
- */
-const shuffle = (tilePool: Tile[]) => {
-  for (let i = tilePool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [tilePool[i], tilePool[j]] = [tilePool[j], tilePool[i]];
-  }
-  return tilePool;
-};
+// Constants for AI timing simulation
+const BASE_AI_TIME_PER_TILE = 2000; // Base time in ms per tile for AI "thinking"
+const AI_RANDOM_FACTOR_MAX = 2500;  // Maximum random time variation to add
+const LAST_TILE_FACTOR = 2;         // Multiplier for the last tile (makes AI slower)
 
 /**
  * Defines the shape of the game state.
@@ -153,21 +73,7 @@ export interface GameActions {
   resetGame: () => void;
 }
 
-// Constants for AI timing simulation
-const BASE_AI_TIME_PER_TILE = 2000; // Base time in ms per tile for AI "thinking"
-const AI_RANDOM_FACTOR_MAX = 2500;  // Maximum random time variation to add
-const LAST_TILE_FACTOR = 2;         // Multiplier for the last tile (makes AI slower)
-
-/**
- * The main game store using Zustand for state management.
- * Combines game state and actions into a single store.
- * 
- * This is the central piece of the application that manages:
- * - Game state (board, tiles, player hands)
- * - Game progression (starting, ending, winning conditions)
- * - Player actions (moving tiles, peeling, dumping)
- * - AI player simulation
- */
+// The main game store using Zustand for state management.
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
   // Initial state
   status: 'pre-game',
