@@ -126,6 +126,7 @@ export interface GameState {
   aiNextTileUseTime: number[];      // Timestamps for when each AI will next use a tile
   lastAiPeeler: number | null;      // Index of the last AI that triggered a peel
   isRottenBanana: boolean;          // Whether the player has invalid words with no tiles left
+  pendingRemovals: Set<string>;     // Track cells with pending removal
 }
 
 /**
@@ -182,6 +183,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   aiNextTileUseTime: [],
   lastAiPeeler: null,
   isRottenBanana: false,
+  pendingRemovals: new Set(), // Initialize pending removals set
 
   /**
    * Updates the number of players for the game.
@@ -369,7 +371,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       // Auto-peel when player runs out of tiles
       get().skala();
     } else if (playerHand.length === 0 && tilePool.length === 0) {
-      // Player might win if board is valid
+      // Player might win if the board is valid
       get().checkWinCondition();
     }
   },
@@ -627,43 +629,31 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
    */
   handleBackspace: () => {
     set((state) => {
-      const { selectedCell, board, playerHand, typingDirection } = state;
+      const { selectedCell, board, typingDirection } = state;
       if (!selectedCell) return {};
 
       const { x, y } = selectedCell;
       const tileOnCell = board[y][x];
 
-      // If there's a tile on the current cell, remove it.
+      // If there's a tile on the current cell, remove it immediately
       if (tileOnCell) {
-        // First, mark the tile for removal animation
-        // We'll add a flag to the tile to indicate it's being removed
-        const newBoard = board.map((row) => [...row]);
-        if (tileOnCell) {
-          newBoard[y][x] = { ...tileOnCell, isRemoving: true };
-          
-          // Set a timeout to actually remove the tile after animation completes
-          setTimeout(() => {
-            set((state) => {
-              const updatedBoard = state.board.map((row) => [...row]);
-              if (updatedBoard[y][x]?.isRemoving) {
-                updatedBoard[y][x] = null;
-                return { 
-                  board: updatedBoard,
-                  playerHand: [...state.playerHand, tileOnCell]
-                };
-              }
-              return {};
-            });
-          }, 280); // Slightly less than animation duration
-          
-          return {
-            board: newBoard,
-            message: `Returning '${tileOnCell.letter}' to hand...`,
-          };
-        }
+        const updatedBoard = state.board.map((row) => [...row]);
+        updatedBoard[y][x] = null;
+        
+        // Move selection back if appropriate
+        const prevSelectedCell = {
+          x: typingDirection === 'horizontal' ? Math.max(0, x - 1) : x,
+          y: typingDirection === 'vertical' ? Math.max(0, y - 1) : y,
+        };
+        
+        return { 
+          board: updatedBoard,
+          playerHand: [...state.playerHand, tileOnCell],
+          selectedCell: prevSelectedCell
+        };
       }
 
-      // If the cell is empty, move the selection back.
+      // Move selection back if no tile was removed
       const prevSelectedCell = {
         x: typingDirection === 'horizontal' ? Math.max(0, x - 1) : x,
         y: typingDirection === 'vertical' ? Math.max(0, y - 1) : y,
